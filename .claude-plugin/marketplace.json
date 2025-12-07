@@ -1,4 +1,6 @@
 {
+  "name": "hiivmind-skills-documentation-navigation",
+  "owner": "hiivmind",
   "plugins": [
     {
       "name": "documentation-skills",
