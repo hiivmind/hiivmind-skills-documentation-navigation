@@ -1,6 +1,6 @@
 ---
-name: docs-init
-description: Initialize a documentation plugin by cloning source and building the index collaboratively. Use after generating a new docs plugin.
+name: docs-initial-analysis
+description: Analyze documentation and build the initial index collaboratively. Use after generating a new docs plugin.
 ---
 
 # Documentation Index Initialization
@@ -166,6 +166,7 @@ git commit -m "Initialize {project} docs index"
 
 ## Reference
 
-- Generate plugin structure: `skills/generate-docs-plugin/SKILL.md`
-- Update existing index: `skills/docs-maintain/SKILL.md`
+- Initialize plugin: `skills/docs-plugin-init/SKILL.md`
+- Enhance topics: `skills/docs-enhance/SKILL.md`
+- Refresh from upstream: `skills/docs-refresh/SKILL.md`
 - Example implementation: `clickhouse-docs/`

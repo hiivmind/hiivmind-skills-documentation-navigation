@@ -24,7 +24,7 @@ When the navigate skill runs and `.source/` exists, compare the local HEAD to `l
 
 ```
 Note: The documentation source is 47 commits ahead of the index.
-Consider running docs-maintain to update.
+Consider running docs-refresh to update.
 ```
 
 This is passive - doesn't block navigation, just informs.
@@ -46,7 +46,7 @@ Add an optional section to `index.md` for authoritative external resources:
 - **Common Pitfalls** [GitHub Discussion #1234] - Frequently asked questions
 ```
 
-These would be manually curated during `docs-init` or added later.
+These would be manually curated during `docs-initial-analysis` or added later.
 
 ---
 
@@ -129,7 +129,7 @@ May be worth revisiting if indexes grow very large (500+ entries).
 **Complexity:** High
 **Value:** Medium
 
-During `docs-maintain update`, analyze the diff and suggest index changes:
+During `docs-refresh update`, analyze the diff and suggest index changes:
 
 ```
 Detected changes:

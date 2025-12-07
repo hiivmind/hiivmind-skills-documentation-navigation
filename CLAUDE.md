@@ -11,10 +11,11 @@ The core value: Instead of relying on training data, web search, or on-demand fe
 ## Architecture
 
 ```
-├── skills/                     # Three core skills (the meta-plugin)
-│   ├── generate-docs-plugin/   # Step 1: Create plugin structure from template
-│   ├── docs-init/              # Step 2: Build index collaboratively with user
-│   └── docs-maintain/          # Step 3: Check and update stale indexes
+├── skills/                     # Four core skills (the meta-plugin)
+│   ├── docs-plugin-init/       # Step 1: Create plugin structure from template
+│   ├── docs-initial-analysis/  # Step 2: Analyze docs, build index with user
+│   ├── docs-enhance/           # Deepen coverage on specific topics
+│   └── docs-refresh/           # Refresh index from upstream changes
 │
 ├── templates/                  # Templates for generating new doc plugins
 │
@@ -30,13 +31,17 @@ The core value: Instead of relying on training data, web search, or on-demand fe
 ## Skill Lifecycle
 
 ```
-generate-docs-plugin → docs-init → docs-maintain
-     (once)              (once)       (periodic)
+docs-plugin-init → docs-initial-analysis → docs-refresh
+    (once)               (once)              (periodic)
+                             ↓
+                       docs-enhance
+                        (as needed)
 ```
 
-1. **generate-docs-plugin**: Clones target repo, analyzes structure, generates plugin directory
-2. **docs-init**: Builds `index.md` collaboratively, focused on user's priorities
-3. **docs-maintain**: Checks upstream commits, updates index when stale
+1. **docs-plugin-init**: Clones target repo, analyzes structure, generates plugin directory
+2. **docs-initial-analysis**: Analyzes docs, builds `index.md` collaboratively with user
+3. **docs-enhance**: Deepens coverage on specific topics (runs on existing index)
+4. **docs-refresh**: Compares against upstream commits, refreshes index based on diff
 
 ## Generated Plugin Structure
 
@@ -84,4 +89,4 @@ When answering questions, the navigate skill:
 
 ## Working with Templates
 
-Templates in `templates/` use placeholders like `{{project_name}}`, `{{repo_url}}`, etc. The `generate-docs-plugin` skill fills these based on target repository analysis.
+Templates in `templates/` use placeholders like `{{project_name}}`, `{{repo_url}}`, etc. The `docs-plugin-init` skill fills these based on target repository analysis.

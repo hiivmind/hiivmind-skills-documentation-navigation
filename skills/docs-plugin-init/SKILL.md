@@ -1,6 +1,6 @@
 ---
-name: generate-docs-plugin
-description: Generate a documentation skill plugin for any open source project. Use when setting up documentation access for a new project.
+name: docs-plugin-init
+description: Initialize a documentation skill plugin for any open source project. Use as the first step when setting up documentation access.
 ---
 
 # Documentation Plugin Generator
@@ -14,7 +14,7 @@ Generate a documentation skill plugin structure for any open source project.
    (gather)       (create dir)      (into scaffold)   (analyze)      (files)         (remove clone)
 ```
 
-**Note:** After generating, run `docs-init` to build the index collaboratively.
+**Note:** After generating, run `docs-initial-analysis` to build the index collaboratively.
 
 ## Phase 1: Input Gathering
 
@@ -122,7 +122,7 @@ Create the plugin files in `${PLUGIN_ROOT}`:
 │       └── SKILL.md
 ├── data/
 │   ├── config.yaml
-│   └── index.md          # Placeholder - built by docs-init
+│   └── index.md          # Placeholder - built by docs-initial-analysis
 ├── .temp-source/         # Temporary - removed in Phase 6
 ├── .gitignore
 └── README.md
@@ -162,7 +162,7 @@ settings:
 ```markdown
 # {Project} Documentation Index
 
-> Run `docs-init` to build this index.
+> Run `docs-initial-analysis` to build this index.
 ```
 
 **`skills/navigate/SKILL.md`**
@@ -222,11 +222,12 @@ Create all plugin files with discovered values.
 rm -rf .temp-source
 ```
 
-**Next step**: Run `docs-init` from within `polars-docs/` to build the index.
+**Next step**: Run `docs-initial-analysis` from within `polars-docs/` to build the index.
 
 ## Reference
 
-- Initialize index: `skills/docs-init/SKILL.md`
-- Update index: `skills/docs-maintain/SKILL.md`
+- Initial analysis: `skills/docs-initial-analysis/SKILL.md`
+- Enhance topics: `skills/docs-enhance/SKILL.md`
+- Refresh from upstream: `skills/docs-refresh/SKILL.md`
 - Example implementation: `clickhouse-docs/`
 - Original spec: `docs/doc-skill-plugin-spec.md`

@@ -1,11 +1,11 @@
 ---
-name: docs-maintain
-description: Check status and update documentation indexes after upstream changes. Use when refreshing an existing docs plugin.
+name: docs-refresh
+description: Refresh documentation index by comparing with upstream changes. Diffs against last indexed commit and aligns index structure/content.
 ---
 
-# Documentation Index Maintenance
+# Documentation Index Refresh
 
-Check for upstream changes and update the index.
+Compare index against upstream commits and refresh based on diff.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ index:
   last_indexed_at: "2025-01-01T00:00:00Z"
 ```
 
-**Note:** For first-time setup, use `docs-init` instead.
+**Note:** For first-time setup, use `docs-initial-analysis` instead.
 
 ## Commands
 
@@ -157,6 +157,8 @@ git commit -m "Update docs index to {short_sha}"
 
 ## Reference
 
-- Generate plugin structure: `skills/generate-docs-plugin/SKILL.md`
-- Initialize index: `skills/docs-init/SKILL.md`
+- Initialize plugin: `skills/docs-plugin-init/SKILL.md`
+- Initial analysis: `skills/docs-initial-analysis/SKILL.md`
+- Enhance topics: `skills/docs-enhance/SKILL.md`
 - Example implementation: `clickhouse-docs/`
+- Future enhancements: `docs/future-enhancements.md`

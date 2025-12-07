@@ -73,9 +73,10 @@ The collaborative index building. Rather than Claude guessing what matters, you 
 ├── .claude-plugin/
 │   └── plugin.json              # Root plugin manifest
 ├── skills/
-│   ├── generate-docs-plugin/    # Create new doc plugins
-│   ├── docs-init/               # Initialize index collaboratively
-│   └── docs-maintain/           # Check status, update index
+│   ├── docs-plugin-init/        # Create new doc plugins
+│   ├── docs-initial-analysis/   # Analyze docs, build index
+│   ├── docs-enhance/            # Deepen specific topics
+│   └── docs-refresh/            # Refresh from upstream changes
 ├── templates/                   # Templates for generated plugins
 ├── docs/                        # Specifications
 └── clickhouse-docs/             # Example implementation
@@ -89,15 +90,19 @@ The collaborative index building. Rather than Claude guessing what matters, you 
 ## Workflow
 
 ```
-generate-docs-plugin  →  docs-init  →  docs-maintain
-     (structure)         (index)       (updates)
+docs-plugin-init  →  docs-initial-analysis  →  docs-refresh
+  (structure)             (index)               (upstream diff)
+                             ↓
+                       docs-enhance
+                      (deepen topics)
 ```
 
 | Skill | When | What |
 |-------|------|------|
-| `generate-docs-plugin` | Once per project | Creates folder structure, config, navigate skill |
-| `docs-init` | Once per documentation source | Clones repo, builds index collaboratively with user |
-| `docs-maintain` | Ongoing | Checks upstream, updates index when needed |
+| `docs-plugin-init` | Once per project | Creates folder structure, config, navigate skill |
+| `docs-initial-analysis` | Once per documentation source | Analyzes docs, builds index collaboratively with user |
+| `docs-enhance` | As needed | Expands coverage on specific topics in existing index |
+| `docs-refresh` | Ongoing | Compares upstream diff, refreshes index when needed |
 
 ## Usage
 
@@ -136,7 +141,20 @@ The per-project navigate skill will:
 2. Fetch content (local or remote)
 3. Answer with citations
 
-### Update the index
+### Enhance a topic
+
+```
+"Enhance the Query Optimization section in clickhouse-docs"
+"I need more detail on migrations in prisma-docs"
+```
+
+This will:
+1. Read the current index
+2. Ask what you need from that topic
+3. Explore docs for additional relevant content
+4. Collaboratively expand the section
+
+### Update from upstream
 
 ```
 "Check if clickhouse-docs needs updating"
@@ -153,7 +171,7 @@ The per-project navigate skill will:
 
 **Per-project discoverability**: Each doc plugin has its own navigate skill with a specific description (e.g., "Find ClickHouse documentation for data modeling, ETL, query optimization").
 
-**Centralized maintenance**: One `docs-maintain` skill works across all doc plugins.
+**Centralized refresh**: One `docs-refresh` skill works across all doc plugins.
 
 ## Example: ClickHouse Docs
 
@@ -176,12 +194,12 @@ The index covers:
 
 ## Adding a New Documentation Source
 
-1. Run `generate-docs-plugin` with the repo URL
-2. Run `docs-init` from the new plugin directory
+1. Run `docs-plugin-init` with the repo URL
+2. Run `docs-initial-analysis` from the new plugin directory
 3. Collaborate on index contents
 4. Commit `data/index.md` and `data/config.yaml`
 
-The navigate skill is immediately usable. Run `docs-maintain` periodically to check for upstream changes.
+The navigate skill is immediately usable. Run `docs-refresh` periodically to check for upstream changes.
 
 ## Repository Organization
 
