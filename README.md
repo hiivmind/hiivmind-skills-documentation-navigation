@@ -2,6 +2,35 @@
 
 Claude Code skills for indexing and navigating open source project documentation.
 
+## What is a "meta-skill"?
+
+This is a skill that **creates other skills**.
+
+Most Claude Code skills help you do something directly—write code, search files, fetch data. This plugin is different: it helps you **build custom skills** for navigating any project's documentation.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  This Plugin (meta-skill)                                       │
+│                                                                 │
+│  docs-plugin-init  →  docs-initial-analysis  →  docs-refresh   │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │  prisma-docs    │  │  clickhouse-docs│  │  react-docs     │ │
+│  │  (skill)        │  │  (skill)        │  │  (skill)        │ │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘ │
+└───────────┼─────────────────────┼─────────────────────┼─────────┘
+            ▼                     ▼                     ▼
+     Prisma docs            ClickHouse docs        React docs
+```
+
+The skills you generate are:
+- **Persistent** — committed to your repo, survive across sessions
+- **Tailored** — built collaboratively around your actual use case
+- **Maintainable** — track upstream changes, know when they're stale
+
+Think of it as a skill factory: you feed it a documentation source, and it produces a specialized navigation skill for that project.
+
 ## Installation
 
 ```bash
