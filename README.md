@@ -31,6 +31,56 @@ The skills you generate are:
 
 Think of it as a skill factory: you feed it a documentation source, and it produces a specialized navigation skill for that project.
 
+## Two ways to create documentation skills
+
+When you run `docs-plugin-init`, you'll choose where the skill should live:
+
+### Project-local skill
+
+```
+your-project/
+├── .claude-plugin/
+│   └── skills/
+│       └── polars-docs/      ← Created here
+│           ├── SKILL.md
+│           └── data/
+└── src/
+    └── analysis.py
+```
+
+**Best for:**
+- A specific project that needs library docs (e.g., data analysis project needing Polars)
+- Teams—everyone who clones the repo automatically gets the skill
+- No marketplace installation required
+
+**Example use case:** "I'm building a data pipeline and need quick access to Polars documentation while I work."
+
+### Standalone plugin
+
+```
+polars-docs/                   ← Created as separate directory/repo
+├── .claude-plugin/
+│   └── plugin.json
+├── skills/navigate/
+├── data/
+└── README.md
+```
+
+**Best for:**
+- Personal reuse across all your projects
+- Sharing via the Claude Code marketplace
+- Documentation you always want available
+
+**Example use case:** "I work with React constantly—I want React docs available in every project."
+
+| Aspect | Project-local | Standalone |
+|--------|---------------|------------|
+| Location | `.claude-plugin/skills/{name}/` | `{name}/` separate repo |
+| Installation | None—just open the project | Marketplace install required |
+| Scope | This project only | All your projects |
+| Team sharing | Automatic (via git) | Each person installs |
+| Maintenance | Tied to project lifecycle | Independent lifecycle |
+
 ## Installation
 
 ```bash
@@ -110,17 +160,6 @@ The collaborative index building. Rather than Claude guessing what matters, you 
 └── docs/                        # Specifications
 ```
 
-## Outputs (Example)
-```
-
-.
-└── clickhouse-docs/             # Example implementation
-    ├── .claude-plugin/
-    ├── skills/navigate/         # Per-project navigation skill
-    └── data/
-        ├── config.yaml          # Source metadata
-        └── index.md             # Human-readable index
-
 ## Workflow
 
 ```
@@ -143,18 +182,18 @@ docs-plugin-init  →  docs-initial-analysis  →  docs-refresh
 ### Create a new documentation plugin
 
 ```
-"Create a docs plugin for Prisma"
+"Create a docs plugin for ClickHouse"
 ```
 
 This will:
 1. Clone the docs repo temporarily
 2. Analyze structure (framework, file types, organization)
-3. Generate `prisma-docs/` with config and navigate skill
+3. Generate `clickhouse-docs/` with config and navigate skill
 
 ### Initialize the index
 
 ```
-"Initialize the prisma-docs index"
+"Initialize the clickhouse-docs index"
 ```
 
 This will:

@@ -43,10 +43,35 @@ docs-plugin-init → docs-initial-analysis → docs-refresh
 3. **docs-enhance**: Deepens coverage on specific topics (runs on existing index)
 4. **docs-refresh**: Compares against upstream commits, refreshes index based on diff
 
-## Generated Plugin Structure
+## Two Destination Types
 
-Each documentation plugin follows this pattern:
+`docs-plugin-init` asks users to choose where the skill should live:
 
+### Project-local skill
+- Created in `.claude-plugin/skills/{name}/` within an existing project
+- No marketplace installation needed—just opening the project activates it
+- Great for teams: everyone who clones the repo gets the skill
+- Example: A data analysis project that needs Polars docs
+
+### Standalone plugin
+- Created as a separate `{name}/` directory (becomes its own repo)
+- Requires marketplace installation for reuse
+- Available across all projects for the user
+- Example: "I always want React docs available everywhere"
+
+## Generated Structures
+
+**Project-local:**
+```
+.claude-plugin/skills/{lib}-docs/
+├── SKILL.md                     # Navigate skill
+├── data/
+│   ├── config.yaml
+│   └── index.md
+└── .source/                     # Gitignored
+```
+
+**Standalone plugin:**
 ```
 {project}-docs/
 ├── .claude-plugin/plugin.json   # Plugin manifest

@@ -20,13 +20,38 @@ Generate a documentation skill plugin structure for any open source project.
 
 Before doing anything, collect required information:
 
+### First: Where should this skill live?
+
+**Ask the user** which approach they want:
+
+| Approach | Location | Best For |
+|----------|----------|----------|
+| **Project-local** | `.claude-plugin/skills/{lib}-docs/` | This project only, team sharing |
+| **Standalone plugin** | `{lib}-docs/` separate directory | Personal reuse across all repos |
+
+**Project-local skill:**
+- Lives inside the current project's `.claude-plugin/` directory
+- No marketplace installation needed—just having the project open activates it
+- Great for teams: everyone who clones the project gets the skill automatically
+- Scoped to this project's specific needs
+- Example: A data analysis project that needs Polars docs
+
+**Standalone plugin:**
+- Creates a separate `{lib}-docs/` directory (typically its own repo, but can be a subdirectory of a broader documentation-skills repo)
+- Requires marketplace installation to use
+- Reusable across all your projects and Claude instances
+- Independent lifecycle from any specific project
+- Example: "I always want React docs available everywhere"
+
+### Then: Collect remaining inputs
+
 | Input | Source | Example |
 |-------|--------|---------|
 | **Repo URL** | User provides | `https://github.com/pola-rs/polars` |
-| **Plugin name** | Derive from repo or ask user | `polars-docs` |
+| **Skill name** | Derive from repo or ask user | `polars-docs` |
 | **Docs path** | Usually `docs/`, verify from URL or ask | `docs/` |
 
-### Deriving Plugin Name
+### Deriving Skill Name
 
 Extract from repo URL:
 - `https://github.com/pola-rs/polars` → `polars-docs`
@@ -35,37 +60,64 @@ Extract from repo URL:
 
 **If ambiguous, ask the user.**
 
-### Plugin Destination
+### Determining Destination Path
 
-Plugins are created in the **current working directory** where Claude Code was launched.
+Based on the user's choice:
+
+**Project-local:**
+```bash
+SKILL_ROOT="${PWD}/.claude-plugin/skills/{skill-name}"
+```
+
+**Standalone plugin:**
+```bash
+PLUGIN_ROOT="${PWD}/{skill-name}"
+```
 
 ## Phase 2: Scaffold
 
-Create the plugin directory structure **before cloning**:
+Create the directory structure **before cloning**.
+
+### Project-local Scaffold
 
 ```bash
-# Set variables (replace with actual values)
+SKILL_NAME="polars-docs"
+SKILL_ROOT="${PWD}/.claude-plugin/skills/${SKILL_NAME}"
+
+# Create skill directory (parent .claude-plugin/ may already exist)
+mkdir -p "${SKILL_ROOT}"
+```
+
+### Standalone Plugin Scaffold
+
+```bash
 PLUGIN_NAME="polars-docs"
 PLUGIN_ROOT="${PWD}/${PLUGIN_NAME}"
 
 # Create the plugin directory
 mkdir -p "${PLUGIN_ROOT}"
-cd "${PLUGIN_ROOT}"
 ```
 
 Now you have a destination for everything that follows.
 
 ## Phase 3: Clone
 
-Clone the source repo **inside the plugin directory**:
+Clone the source repo **inside the skill/plugin directory**:
+
+### Project-local Clone
 
 ```bash
-cd "${PLUGIN_ROOT}"
-git clone --depth 1 {repo_url} .source
+git clone --depth 1 {repo_url} "${SKILL_ROOT}/.source"
+```
+
+### Standalone Plugin Clone
+
+```bash
+git clone --depth 1 {repo_url} "${PLUGIN_ROOT}/.source"
 ```
 
 This ensures:
-- Clone is relative to the plugin being created
+- Clone is relative to the skill/plugin being created
 - Easy cleanup later
 - No confusion about working directory
 
@@ -106,119 +158,194 @@ grep -r "git clone" .source/scripts/ .source/package.json 2>/dev/null
 
 ## Phase 5: Generate
 
-Create the plugin files in `${PLUGIN_ROOT}`:
+Create files by reading templates and filling placeholders.
 
-### Directory Structure
+### Template Location
+
+Templates are in this plugin's `templates/` directory. To find them:
+1. Locate this skill file (`skills/docs-plugin-init/SKILL.md`)
+2. Navigate up to the plugin root
+3. Templates are in `templates/`
+
+**From this skill's perspective:** `../../templates/`
+
+### Template Files
+
+| Template | Purpose | Used By |
+|----------|---------|---------|
+| `navigate-skill.md.template` | The navigate skill | Both |
+| `config.yaml.template` | Source config + index tracking | Both |
+| `plugin.json.template` | Plugin manifest | Standalone only |
+| `readme.md.template` | Plugin documentation | Standalone only |
+| `gitignore.template` | Ignore `.source/` | Standalone only |
+
+### Template Placeholders
+
+Fill these from Phase 1 inputs and Phase 4 research:
+
+| Placeholder | Source | Example |
+|-------------|--------|---------|
+| `{{project_name}}` | Derived from repo (lowercase) | `polars` |
+| `{{project_display_name}}` | Human-readable name | `Polars` |
+| `{{repo_url}}` | User input | `https://github.com/pola-rs/polars` |
+| `{{repo_owner}}` | Extracted from URL | `pola-rs` |
+| `{{repo_name}}` | Extracted from URL | `polars` |
+| `{{branch}}` | Usually `main` | `main` |
+| `{{docs_root}}` | From research | `docs/` |
+| `{{description}}` | Generated | `Always-current Polars documentation` |
+| `{{author_name}}` | Ask or default | User's name |
+| `{{keywords_json}}` | Generated (standalone only) | `"dataframes", "python", "rust"` |
+| `{{example_questions}}` | Generated (standalone only) | Example usage questions |
+| `{{skill_topics}}` | Generated (standalone only) | Topics the skill covers |
+
+### Project-local Structure
+
+```
+.claude-plugin/
+└── skills/
+    └── {skill-name}/
+        ├── SKILL.md              # From navigate-skill.md.template
+        ├── data/
+        │   ├── config.yaml       # From config.yaml.template
+        │   └── index.md          # Placeholder (see below)
+        └── .source/              # Cloned source (gitignored by parent)
+```
+
+**Files from templates:**
+- `SKILL.md` ← `templates/navigate-skill.md.template`
+- `data/config.yaml` ← `templates/config.yaml.template`
+
+**Create manually:**
+- `data/index.md` - Simple placeholder:
+  ```markdown
+  # {Project} Documentation Index
+
+  > Run `docs-initial-analysis` to build this index.
+  ```
+
+**Parent `.gitignore`** - Ensure the project's `.gitignore` includes:
+```
+.claude-plugin/skills/*/.source/
+```
+
+---
+
+### Standalone Plugin Structure
 
 ```
 {plugin-name}/
 ├── .claude-plugin/
-│   └── plugin.json
+│   └── plugin.json               # From plugin.json.template
 ├── skills/
 │   └── navigate/
-│       └── SKILL.md
+│       └── SKILL.md              # From navigate-skill.md.template
 ├── data/
-│   ├── config.yaml
-│   └── index.md          # Placeholder - built by docs-initial-analysis
-├── .source/         # Cloned source - reused by other skills
-├── .gitignore
-└── README.md
+│   ├── config.yaml               # From config.yaml.template
+│   └── index.md                  # Placeholder
+├── .source/
+├── .gitignore                    # From gitignore.template
+└── README.md                     # From readme.md.template
 ```
 
-### Files to Create
+**Files from templates:**
+- `.claude-plugin/plugin.json` ← `templates/plugin.json.template`
+- `skills/navigate/SKILL.md` ← `templates/navigate-skill.md.template`
+- `data/config.yaml` ← `templates/config.yaml.template`
+- `.gitignore` ← `templates/gitignore.template`
+- `README.md` ← `templates/readme.md.template`
 
-**`.claude-plugin/plugin.json`**
-```json
-{
-  "name": "{plugin-name}",
-  "description": "Always-current {Project} documentation",
-  "version": "1.0.0"
-}
-```
-
-**`data/config.yaml`**
-```yaml
-source:
-  repo_url: "{repo_url}"
-  branch: "{branch}"
-  docs_root: "{docs_path}"
-
-index:
-  last_commit_sha: null
-  last_indexed_at: null
-  format: "markdown"
-
-settings:
-  include_patterns:
-    - "**/*.md"
-  exclude_patterns:
-    - "**/_*.md"
-```
-
-**`data/index.md`** (placeholder)
-```markdown
-# {Project} Documentation Index
-
-> Run `docs-initial-analysis` to build this index.
-```
-
-**`skills/navigate/SKILL.md`**
-- Per-project skill with specific description for discoverability
-- Include project name in the skill description
-
-**`.gitignore`**
-```
-.source/
-```
-
-**`README.md`**
-- Brief description of the plugin
-- Link to source documentation
-- Instructions for updating index
+**Create manually:**
+- `data/index.md` - Simple placeholder (same as project-local)
 
 ## Phase 6: Verify
 
-Confirm the plugin structure is complete:
+Confirm the structure is complete:
 
+**Project-local:**
+```bash
+ls -la "${SKILL_ROOT}"
+```
+
+**Standalone plugin:**
 ```bash
 ls -la "${PLUGIN_ROOT}"
 ```
 
 **Keep `.source/`** - it will be reused by `docs-initial-analysis`, `docs-enhance`, and `docs-refresh`.
 
-## Example Walkthrough
+## Example Walkthroughs
 
-**User**: "Create a docs plugin for Polars: https://github.com/pola-rs/polars/tree/main/docs"
+### Example A: Project-local (data analysis project needs Polars)
 
-### Phase 1 - Input
+**User**: "I'm working on a data analysis project and need better access to Polars docs. Can you set that up?"
+
+**Phase 1 - Input**
+- Destination: **Project-local** (user wants it for this project)
 - Repo URL: `https://github.com/pola-rs/polars`
-- Plugin name: `polars-docs`
-- Docs path: `docs/` (from URL)
+- Skill name: `polars-docs`
+- Docs path: `docs/`
 
-### Phase 2 - Scaffold
+**Phase 2 - Scaffold**
 ```bash
-mkdir -p ./polars-docs
-cd ./polars-docs
+mkdir -p ./.claude-plugin/skills/polars-docs
 ```
 
-### Phase 3 - Clone
+**Phase 3 - Clone**
 ```bash
-git clone --depth 1 https://github.com/pola-rs/polars .source
+git clone --depth 1 https://github.com/pola-rs/polars .claude-plugin/skills/polars-docs/.source
 ```
 
-### Phase 4 - Research
-- Framework: MkDocs (found `mkdocs.yml`)
-- Nav: Defined in `mkdocs.yml`
+**Phase 4 - Research**
+- Framework: MkDocs
 - 150 markdown files
 - Docs root: `docs/`
 
-### Phase 5 - Generate
-Create all plugin files with discovered values.
+**Phase 5 - Generate**
+Create skill files in `.claude-plugin/skills/polars-docs/`
 
-### Phase 6 - Verify
-Confirm structure is complete. Keep `.source/` for subsequent skills.
+**Phase 6 - Verify**
+```bash
+ls -la .claude-plugin/skills/polars-docs/
+```
 
-**Next step**: Run `docs-initial-analysis` from within `polars-docs/` to build the index.
+**Result:** Skill is immediately available in this project. Teammates who clone the repo will also have access (after ensuring `.source/` is gitignored).
+
+---
+
+### Example B: Standalone plugin (reusable React docs)
+
+**User**: "Create a docs plugin for React that I can use across all my projects"
+
+**Phase 1 - Input**
+- Destination: **Standalone plugin** (user wants reusability)
+- Repo URL: `https://github.com/reactjs/react.dev`
+- Plugin name: `react-docs`
+- Docs path: `src/content/`
+
+**Phase 2 - Scaffold**
+```bash
+mkdir -p ./react-docs
+```
+
+**Phase 3 - Clone**
+```bash
+git clone --depth 1 https://github.com/reactjs/react.dev ./react-docs/.source
+```
+
+**Phase 4 - Research**
+- Framework: Next.js with MDX
+- Nav: Defined in `src/sidebarLearn.json`
+- Docs root: `src/content/`
+
+**Phase 5 - Generate**
+Create full plugin structure in `react-docs/`
+
+**Phase 6 - Verify**
+```bash
+ls -la ./react-docs/
+```
+
+**Next step**: User creates a git repo, publishes to marketplace, then installs via `/plugin install`.
 
 ## Reference
 
