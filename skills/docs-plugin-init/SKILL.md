@@ -10,8 +10,8 @@ Generate a documentation skill plugin structure for any open source project.
 ## Process
 
 ```
-1. INPUT      →  2. SCAFFOLD    →  3. CLONE       →  4. RESEARCH  →  5. GENERATE  →  6. CLEANUP
-   (gather)       (create dir)      (into scaffold)   (analyze)      (files)         (remove clone)
+1. INPUT      →  2. SCAFFOLD    →  3. CLONE       →  4. RESEARCH  →  5. GENERATE  →  6. VERIFY
+   (gather)       (create dir)      (into scaffold)   (analyze)      (files)         (confirm)
 ```
 
 **Note:** After generating, run `docs-initial-analysis` to build the index collaboratively.
@@ -37,10 +37,7 @@ Extract from repo URL:
 
 ### Plugin Destination
 
-All doc plugins are created in:
-```
-~/.claude/plugins/marketplaces/hiivmind-skills-documentation-navigation/
-```
+Plugins are created in the **current working directory** where Claude Code was launched.
 
 ## Phase 2: Scaffold
 
@@ -49,7 +46,7 @@ Create the plugin directory structure **before cloning**:
 ```bash
 # Set variables (replace with actual values)
 PLUGIN_NAME="polars-docs"
-PLUGIN_ROOT="$HOME/.claude/plugins/marketplaces/hiivmind-skills-documentation-navigation/${PLUGIN_NAME}"
+PLUGIN_ROOT="${PWD}/${PLUGIN_NAME}"
 
 # Create the plugin directory
 mkdir -p "${PLUGIN_ROOT}"
@@ -64,7 +61,7 @@ Clone the source repo **inside the plugin directory**:
 
 ```bash
 cd "${PLUGIN_ROOT}"
-git clone --depth 1 {repo_url} .temp-source
+git clone --depth 1 {repo_url} .source
 ```
 
 This ensures:
@@ -92,19 +89,19 @@ All commands run from `${PLUGIN_ROOT}`:
 
 ```bash
 # Framework detection
-ls .temp-source/
+ls .source/
 
 # Find nav structure
-find .temp-source -name "sidebars*" -o -name "mkdocs.yml" -o -name "conf.py"
+find .source -name "sidebars*" -o -name "mkdocs.yml" -o -name "conf.py"
 
 # Count doc files
-find .temp-source/{docs_path} -name "*.md" -o -name "*.mdx" | wc -l
+find .source/{docs_path} -name "*.md" -o -name "*.mdx" | wc -l
 
 # Sample frontmatter
-head -30 .temp-source/{docs_path}/some-file.md
+head -30 .source/{docs_path}/some-file.md
 
 # Check for external sources
-grep -r "git clone" .temp-source/scripts/ .temp-source/package.json 2>/dev/null
+grep -r "git clone" .source/scripts/ .source/package.json 2>/dev/null
 ```
 
 ## Phase 5: Generate
@@ -123,7 +120,7 @@ Create the plugin files in `${PLUGIN_ROOT}`:
 ├── data/
 │   ├── config.yaml
 │   └── index.md          # Placeholder - built by docs-initial-analysis
-├── .temp-source/         # Temporary - removed in Phase 6
+├── .source/         # Cloned source - reused by other skills
 ├── .gitignore
 └── README.md
 ```
@@ -171,7 +168,7 @@ settings:
 
 **`.gitignore`**
 ```
-.temp-source/
+.source/
 ```
 
 **`README.md`**
@@ -179,14 +176,15 @@ settings:
 - Link to source documentation
 - Instructions for updating index
 
-## Phase 6: Cleanup
+## Phase 6: Verify
 
-Remove the temporary clone:
+Confirm the plugin structure is complete:
 
 ```bash
-cd "${PLUGIN_ROOT}"
-rm -rf .temp-source
+ls -la "${PLUGIN_ROOT}"
 ```
+
+**Keep `.source/`** - it will be reused by `docs-initial-analysis`, `docs-enhance`, and `docs-refresh`.
 
 ## Example Walkthrough
 
@@ -199,13 +197,13 @@ rm -rf .temp-source
 
 ### Phase 2 - Scaffold
 ```bash
-mkdir -p ~/.claude/plugins/marketplaces/hiivmind-skills-documentation-navigation/polars-docs
-cd ~/.claude/plugins/marketplaces/hiivmind-skills-documentation-navigation/polars-docs
+mkdir -p ./polars-docs
+cd ./polars-docs
 ```
 
 ### Phase 3 - Clone
 ```bash
-git clone --depth 1 https://github.com/pola-rs/polars .temp-source
+git clone --depth 1 https://github.com/pola-rs/polars .source
 ```
 
 ### Phase 4 - Research
@@ -217,10 +215,8 @@ git clone --depth 1 https://github.com/pola-rs/polars .temp-source
 ### Phase 5 - Generate
 Create all plugin files with discovered values.
 
-### Phase 6 - Cleanup
-```bash
-rm -rf .temp-source
-```
+### Phase 6 - Verify
+Confirm structure is complete. Keep `.source/` for subsequent skills.
 
 **Next step**: Run `docs-initial-analysis` from within `polars-docs/` to build the index.
 
