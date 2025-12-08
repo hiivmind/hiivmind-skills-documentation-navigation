@@ -13,23 +13,25 @@ Most Claude Code skills help you do something directly—write code, search file
 │  hiivmind-corpus (meta-skill)                                               │
 │                                                                             │
 │  corpus-init  →  corpus-build  →  corpus-refresh                            │
-│       │                                                                     │
+│       │              ↑                                                      │
+│       │         add-source  →  (add more sources)                           │
 │       ▼                                                                     │
-│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐ │
-│  │ hiivmind-corpus-    │  │ hiivmind-corpus-    │  │ hiivmind-corpus-    │ │
-│  │ prisma              │  │ clickhouse          │  │ react               │ │
-│  └──────────┬──────────┘  └──────────┬──────────┘  └──────────┬──────────┘ │
-└─────────────┼─────────────────────────┼─────────────────────────┼───────────┘
-              ▼                         ▼                         ▼
-       Prisma docs               ClickHouse docs              React docs
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ hiivmind-corpus-fullstack                                            │   │
+│  │   Sources: react (git) + team-standards (local) + blog-posts (web)   │   │
+│  └──────────────────────────────────┬───────────────────────────────────┘   │
+└─────────────────────────────────────┼───────────────────────────────────────┘
+                                      ▼
+                    React docs + Team docs + Blog articles
 ```
 
 The corpus skills you generate are:
 - **Persistent** — committed to your repo, survive across sessions
 - **Tailored** — built collaboratively around your actual use case
 - **Maintainable** — track upstream changes, know when they're stale
+- **Multi-source** — combine git repos, local documents, and web content
 
-Think of it as a skill factory: you feed it a documentation source, and it produces a specialized corpus skill for that project.
+Think of it as a skill factory: you feed it documentation sources, and it produces a specialized corpus skill with a unified index.
 
 ## Two ways to create corpus skills
 
@@ -153,6 +155,7 @@ The collaborative index building. Rather than Claude guessing what matters, you 
 │   └── plugin.json                 # Root plugin manifest
 ├── skills/
 │   ├── hiivmind-corpus-init/       # Create new corpus skills
+│   ├── hiivmind-corpus-add-source/ # Add sources to existing corpus
 │   ├── hiivmind-corpus-build/      # Analyze docs, build index
 │   ├── hiivmind-corpus-enhance/    # Deepen specific topics
 │   └── hiivmind-corpus-refresh/    # Refresh from upstream changes
@@ -164,7 +167,10 @@ The collaborative index building. Rather than Claude guessing what matters, you 
 
 ```
 hiivmind-corpus-init  →  hiivmind-corpus-build  →  hiivmind-corpus-refresh
-     (structure)              (index)                 (upstream diff)
+     (structure)              (index)                 (per-source tracking)
+                                 ↑
+                        hiivmind-corpus-add-source
+                           (git, local, web)
                                  ↓
                         hiivmind-corpus-enhance
                            (deepen topics)
@@ -172,10 +178,11 @@ hiivmind-corpus-init  →  hiivmind-corpus-build  →  hiivmind-corpus-refresh
 
 | Skill | When | What |
 |-------|------|------|
-| `hiivmind-corpus-init` | Once per project | Creates folder structure, config, navigate skill |
-| `hiivmind-corpus-build` | Once per documentation source | Analyzes docs, builds index collaboratively with user |
-| `hiivmind-corpus-enhance` | As needed | Expands coverage on specific topics in existing index |
-| `hiivmind-corpus-refresh` | Ongoing | Compares upstream diff, refreshes index when needed |
+| `hiivmind-corpus-init` | Once per corpus | Creates folder structure, config, navigate skill |
+| `hiivmind-corpus-add-source` | To expand corpus | Adds git repos, local documents, or web pages |
+| `hiivmind-corpus-build` | After adding sources | Analyzes all sources, builds unified index |
+| `hiivmind-corpus-enhance` | As needed | Expands coverage on specific topics (can span sources) |
+| `hiivmind-corpus-refresh` | Ongoing | Checks each source for updates, refreshes index |
 
 ## Usage
 
@@ -183,56 +190,81 @@ hiivmind-corpus-init  →  hiivmind-corpus-build  →  hiivmind-corpus-refresh
 
 ```
 "Create a corpus skill for ClickHouse"
+"Create an empty corpus skill called fullstack-docs"
 ```
 
 This will:
-1. Clone the docs repo temporarily
-2. Analyze structure (framework, file types, organization)
-3. Generate `hiivmind-corpus-clickhouse/` with config and navigate skill
+1. Ask where to create it (project-local or standalone)
+2. Ask for initial source type (git repo or start empty)
+3. Clone docs repo to `.source/{source_id}/` (if git)
+4. Generate corpus structure with config and navigate skill
+
+### Add sources to existing corpus
+
+```
+"Add TanStack Query docs to my corpus"
+"Add our team standards as a local source"
+"Add these blog posts to my corpus" (with URLs)
+```
+
+Three source types are supported:
+
+| Type | Description | Storage |
+|------|-------------|---------|
+| **git** | Clone a documentation repository | `.source/{source_id}/` |
+| **local** | User-uploaded markdown files | `data/uploads/{source_id}/` |
+| **web** | Fetched and cached web pages | `.cache/web/{source_id}/` |
 
 ### Build the index
 
 ```
-"Build the hiivmind-corpus-clickhouse index"
+"Build the hiivmind-corpus-fullstack index"
 ```
 
 This will:
-1. Clone source to `.source/`
-2. Scan and present the structure
+1. Prepare all sources (clone git, verify local, check web cache)
+2. Scan each source and present combined summary
 3. Ask about your use case and priorities
-4. Build `index.md` collaboratively
-5. Save commit SHA for change tracking
+4. Build unified `index.md` with source-prefixed paths
+5. Save per-source tracking metadata
 
 ### Navigate documentation
 
 ```
-"How do I set up Prisma migrations?"
+"How do I set up React hooks?"
+"What are our team's testing standards?"
 ```
 
-The per-project navigate skill will:
+The navigate skill will:
 1. Search the index for relevant docs
-2. Fetch content (local or remote)
-3. Answer with citations
+2. Resolve the source from the path prefix (e.g., `react:`, `local:`, `web:`)
+3. Fetch content from appropriate location
+4. Answer with citations
 
 ### Enhance a topic
 
 ```
-"Enhance the Query Optimization section in hiivmind-corpus-clickhouse"
-"I need more detail on migrations in hiivmind-corpus-prisma"
+"Enhance the Testing section with content from all sources"
+"Add more detail on hooks from both React docs and the blog posts"
 ```
 
 This will:
 1. Read the current index
-2. Ask what you need from that topic
-3. Explore docs for additional relevant content
-4. Collaboratively expand the section
+2. Search across relevant sources
+3. Collaboratively expand with cross-source entries
+4. Group by topic or source as preferred
 
 ### Refresh from upstream
 
 ```
-"Check if hiivmind-corpus-clickhouse needs updating"
-"Refresh the hiivmind-corpus-clickhouse index"
+"Check if my corpus needs updating"
+"Refresh the react source"
 ```
+
+Each source type has different refresh behavior:
+- **git**: Compare commit SHA, show diff of changed files
+- **local**: Detect new/modified files by timestamp
+- **web**: Show cache age, re-fetch with user approval
 
 ## Design Principles
 
@@ -246,16 +278,53 @@ This will:
 
 **Centralized refresh**: One `hiivmind-corpus-refresh` skill works across all corpus skills.
 
-## Example: ClickHouse Corpus
+## Example: Multi-Source Corpus
+
+```
+hiivmind-corpus-fullstack/
+├── .claude-plugin/plugin.json
+├── skills/navigate/SKILL.md       # "Find fullstack documentation..."
+├── data/
+│   ├── config.yaml                # Multi-source config (schema_version: 2)
+│   ├── index.md                   # Unified index with source prefixes
+│   └── uploads/                   # Local documents
+│       └── team-standards/
+│           ├── coding-guidelines.md
+│           └── testing.md
+├── .source/                       # Git clones (gitignored)
+│   ├── react/
+│   └── tanstack-query/
+└── .cache/                        # Web cache (gitignored)
+    └── web/
+        └── kent-testing-blog/
+```
+
+**Index format with source prefixes:**
+
+```markdown
+## React Fundamentals
+- **Hooks Overview** `react:reference/hooks.md` - Introduction to hooks
+- **useEffect** `react:reference/useEffect.md` - Side effects
+
+## Data Fetching
+- **Query Basics** `tanstack-query:docs/queries.md` - Core concepts
+
+## Testing Best Practices
+- **Implementation Details** `web:kent-testing-blog/testing-impl.md` - What not to test
+- **Our Testing Standards** `local:team-standards/testing.md` - Team conventions
+```
+
+## Example: Single-Source Corpus
 
 ```
 hiivmind-corpus-clickhouse/
 ├── .claude-plugin/plugin.json
 ├── skills/navigate/SKILL.md     # "Find ClickHouse documentation..."
 ├── data/
-│   ├── config.yaml              # Points to ClickHouse/clickhouse-docs
+│   ├── config.yaml              # Single source (still uses sources array)
 │   └── index.md                 # ~150 key docs organized by topic
-└── .source/                     # Local clone (gitignored)
+└── .source/
+    └── clickhouse/              # Local clone (gitignored)
 ```
 
 The index covers:
@@ -265,14 +334,28 @@ The index covers:
 - Operations (deployment, monitoring, backups)
 - Integrations (Kafka, S3, dbt)
 
-## Adding a New Documentation Source
+## Adding Documentation Sources
+
+### New corpus with single git source
 
 1. Run `hiivmind-corpus-init` with the repo URL
-2. Run `hiivmind-corpus-build` from the new skill directory
-3. Collaborate on index contents
-4. Commit `data/index.md` and `data/config.yaml`
+2. Run `hiivmind-corpus-build` to create the index
+3. Commit `data/index.md` and `data/config.yaml`
 
-The navigate skill is immediately usable. Run `hiivmind-corpus-refresh` periodically to check for upstream changes.
+### Add sources to existing corpus
+
+1. Run `hiivmind-corpus-add-source` from the corpus directory
+2. Choose source type (git, local, or web)
+3. Provide source details (URL, files, etc.)
+4. Optionally add entries to the index immediately
+
+### Start empty, add sources later
+
+1. Run `hiivmind-corpus-init` and choose "Start empty"
+2. Run `hiivmind-corpus-add-source` for each source
+3. Run `hiivmind-corpus-build` to create the unified index
+
+The navigate skill works immediately. Run `hiivmind-corpus-refresh` periodically to check each source for updates.
 
 ## Repository Organization
 
@@ -298,9 +381,9 @@ This repository contains the **meta-plugin** (skills for generating and maintain
 
 See [docs/future-enhancements.md](docs/future-enhancements.md) for planned improvements including:
 - Staleness warnings during navigation
-- Version awareness
-- Cross-project linking
-- Curated external resources
+- Version awareness for library documentation
+- Cross-corpus linking
+- Automatic web content refresh scheduling
 
 ## License
 
