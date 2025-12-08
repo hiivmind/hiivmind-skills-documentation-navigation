@@ -43,20 +43,36 @@ Before doing anything, collect required information:
 - Independent lifecycle from any specific project
 - Example: "I always want React docs available everywhere"
 
-### Then: Collect remaining inputs
+### Then: Initial source type
+
+Ask the user what type of initial source:
+
+| Type | Description | Best For |
+|------|-------------|----------|
+| **Git repository** | Clone a docs repo | Most open source projects (default) |
+| **Start empty** | No initial source | Will add sources later via `hiivmind-corpus-add-source` |
+
+Note: Local documents and web pages can be added after init using `hiivmind-corpus-add-source`.
+
+### Then: Collect remaining inputs (for git source)
 
 | Input | Source | Example |
 |-------|--------|---------|
 | **Repo URL** | User provides | `https://github.com/pola-rs/polars` |
 | **Skill name** | Derive from repo or ask user | `hiivmind-corpus-polars` |
+| **Source ID** | Derive from repo name (lowercase) | `polars` |
 | **Docs path** | Usually `docs/`, verify from URL or ask | `docs/` |
 
-### Deriving Skill Name
+### Deriving Skill Name and Source ID
 
-Extract from repo URL and prefix with `hiivmind-corpus-`:
-- `https://github.com/pola-rs/polars` → `hiivmind-corpus-polars`
-- `https://github.com/prisma/docs` → `hiivmind-corpus-prisma`
-- `https://github.com/ClickHouse/ClickHouse` → `hiivmind-corpus-clickhouse`
+Extract from repo URL:
+- **Skill name**: Prefix with `hiivmind-corpus-`
+- **Source ID**: Lowercase repo name (used for `.source/{source_id}/` directory)
+
+Examples:
+- `https://github.com/pola-rs/polars` → skill: `hiivmind-corpus-polars`, source_id: `polars`
+- `https://github.com/prisma/docs` → skill: `hiivmind-corpus-prisma`, source_id: `prisma`
+- `https://github.com/ClickHouse/ClickHouse` → skill: `hiivmind-corpus-clickhouse`, source_id: `clickhouse`
 
 **If ambiguous, ask the user.**
 
@@ -102,24 +118,27 @@ Now you have a destination for everything that follows.
 
 ## Phase 3: Clone
 
-Clone the source repo **inside the skill/plugin directory**:
+Clone the source repo **inside the skill/plugin directory**, using the source ID as a subdirectory name.
+
+**Skip this phase if user chose "Start empty".**
 
 ### Project-local Clone
 
 ```bash
-git clone --depth 1 {repo_url} "${SKILL_ROOT}/.source"
+git clone --depth 1 {repo_url} "${SKILL_ROOT}/.source/{source_id}"
 ```
 
 ### Standalone Plugin Clone
 
 ```bash
-git clone --depth 1 {repo_url} "${PLUGIN_ROOT}/.source"
+git clone --depth 1 {repo_url} "${PLUGIN_ROOT}/.source/{source_id}"
 ```
 
 This ensures:
 - Clone is relative to the skill/plugin being created
+- Multiple sources can coexist in `.source/` directory
+- Source ID matches config.yaml entry
 - Easy cleanup later
-- No confusion about working directory
 
 ## Phase 4: Research
 
@@ -137,23 +156,25 @@ Analyze the cloned documentation. **Do not assume** - investigate.
 
 ### Research Commands
 
-All commands run from `${PLUGIN_ROOT}`:
+**Skip if user chose "Start empty".**
+
+All commands run from `${PLUGIN_ROOT}` (or `${SKILL_ROOT}` for project-local):
 
 ```bash
 # Framework detection
-ls .source/
+ls .source/{source_id}/
 
 # Find nav structure
-find .source -name "sidebars*" -o -name "mkdocs.yml" -o -name "conf.py"
+find .source/{source_id} -name "sidebars*" -o -name "mkdocs.yml" -o -name "conf.py"
 
 # Count doc files
-find .source/{docs_path} -name "*.md" -o -name "*.mdx" | wc -l
+find .source/{source_id}/{docs_path} -name "*.md" -o -name "*.mdx" | wc -l
 
 # Sample frontmatter
-head -30 .source/{docs_path}/some-file.md
+head -30 .source/{source_id}/{docs_path}/some-file.md
 
 # Check for external sources
-grep -r "git clone" .source/scripts/ .source/package.json 2>/dev/null
+grep -r "git clone" .source/{source_id}/scripts/ .source/{source_id}/package.json 2>/dev/null
 ```
 
 ## Phase 5: Generate
@@ -187,6 +208,7 @@ Fill these from Phase 1 inputs and Phase 4 research:
 |-------------|--------|---------|
 | `{{project_name}}` | Derived from repo (lowercase) | `polars` |
 | `{{project_display_name}}` | Human-readable name | `Polars` |
+| `{{source_id}}` | Derived from repo (lowercase) | `polars` |
 | `{{repo_url}}` | User input | `https://github.com/pola-rs/polars` |
 | `{{repo_owner}}` | Extracted from URL | `pola-rs` |
 | `{{repo_name}}` | Extracted from URL | `polars` |
@@ -198,6 +220,8 @@ Fill these from Phase 1 inputs and Phase 4 research:
 | `{{example_questions}}` | Generated (standalone only) | Example usage questions |
 | `{{skill_topics}}` | Generated (standalone only) | Topics the skill covers |
 
+**For "Start empty" corpora:** Leave the `sources:` array empty in config.yaml. User will add sources later via `hiivmind-corpus-add-source`.
+
 ### Project-local Structure
 
 ```
@@ -207,8 +231,12 @@ Fill these from Phase 1 inputs and Phase 4 research:
         ├── SKILL.md              # From navigate-skill.md.template
         ├── data/
         │   ├── config.yaml       # From config.yaml.template
-        │   └── index.md          # Placeholder (see below)
-        └── .source/              # Cloned source (gitignored by parent)
+        │   ├── index.md          # Placeholder (see below)
+        │   └── uploads/          # For local sources (created when needed)
+        ├── .source/              # Cloned git sources (gitignored)
+        │   └── {source_id}/      # Each source in its own directory
+        └── .cache/               # Cached web content (gitignored)
+            └── web/
 ```
 
 **Files from templates:**
@@ -241,8 +269,12 @@ Fill these from Phase 1 inputs and Phase 4 research:
 │       └── SKILL.md              # From navigate-skill.md.template
 ├── data/
 │   ├── config.yaml               # From config.yaml.template
-│   └── index.md                  # Placeholder
-├── .source/
+│   ├── index.md                  # Placeholder
+│   └── uploads/                  # For local sources (created when needed)
+├── .source/                      # Cloned git sources (gitignored)
+│   └── {source_id}/              # Each source in its own directory
+├── .cache/                       # Cached web content (gitignored)
+│   └── web/
 ├── .gitignore                    # From gitignore.template
 └── README.md                     # From readme.md.template
 ```
@@ -281,8 +313,10 @@ ls -la "${PLUGIN_ROOT}"
 
 **Phase 1 - Input**
 - Destination: **Project-local** (user wants it for this project)
+- Initial source: **Git repository**
 - Repo URL: `https://github.com/pola-rs/polars`
 - Skill name: `hiivmind-corpus-polars`
+- Source ID: `polars`
 - Docs path: `docs/`
 
 **Phase 2 - Scaffold**
@@ -292,7 +326,7 @@ mkdir -p ./.claude-plugin/skills/hiivmind-corpus-polars
 
 **Phase 3 - Clone**
 ```bash
-git clone --depth 1 https://github.com/pola-rs/polars .claude-plugin/skills/hiivmind-corpus-polars/.source
+git clone --depth 1 https://github.com/pola-rs/polars .claude-plugin/skills/hiivmind-corpus-polars/.source/polars
 ```
 
 **Phase 4 - Research**
@@ -318,8 +352,10 @@ ls -la .claude-plugin/skills/hiivmind-corpus-polars/
 
 **Phase 1 - Input**
 - Destination: **Standalone plugin** (user wants reusability)
+- Initial source: **Git repository**
 - Repo URL: `https://github.com/reactjs/react.dev`
 - Plugin name: `hiivmind-corpus-react`
+- Source ID: `react`
 - Docs path: `src/content/`
 
 **Phase 2 - Scaffold**
@@ -329,7 +365,7 @@ mkdir -p ./hiivmind-corpus-react
 
 **Phase 3 - Clone**
 ```bash
-git clone --depth 1 https://github.com/reactjs/react.dev ./hiivmind-corpus-react/.source
+git clone --depth 1 https://github.com/reactjs/react.dev ./hiivmind-corpus-react/.source/react
 ```
 
 **Phase 4 - Research**
@@ -347,9 +383,41 @@ ls -la ./hiivmind-corpus-react/
 
 **Next step**: User creates a git repo, publishes to marketplace, then installs via `/plugin install`.
 
+---
+
+### Example C: Start empty (multi-source corpus)
+
+**User**: "I want to create a corpus that combines React, our internal docs, and some blog posts"
+
+**Phase 1 - Input**
+- Destination: **Standalone plugin**
+- Initial source: **Start empty**
+- Plugin name: `hiivmind-corpus-fullstack`
+
+**Phase 2 - Scaffold**
+```bash
+mkdir -p ./hiivmind-corpus-fullstack
+```
+
+**Phase 3 - Clone**
+Skipped (user chose "Start empty")
+
+**Phase 4 - Research**
+Skipped
+
+**Phase 5 - Generate**
+Create plugin structure with empty `sources:` array in config.yaml
+
+**Phase 6 - Verify**
+```bash
+ls -la ./hiivmind-corpus-fullstack/
+```
+
+**Next step**: User runs `hiivmind-corpus-add-source` to add React (git), internal docs (local), and blog posts (web).
+
 ## Reference
 
+- Add sources: `skills/hiivmind-corpus-add-source/SKILL.md`
 - Build index: `skills/hiivmind-corpus-build/SKILL.md`
 - Enhance topics: `skills/hiivmind-corpus-enhance/SKILL.md`
 - Refresh from upstream: `skills/hiivmind-corpus-refresh/SKILL.md`
-- Original spec: `docs/doc-skill-plugin-spec.md`

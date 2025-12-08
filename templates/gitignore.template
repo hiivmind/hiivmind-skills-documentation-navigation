@@ -1,5 +1,8 @@
-# Cloned documentation repository
+# Cloned documentation repositories
 .source/
+
+# Cached web content
+.cache/
 
 # OS files
 .DS_Store

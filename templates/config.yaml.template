@@ -1,14 +1,26 @@
 # {{project_display_name}} Corpus Configuration
+schema_version: 2
 
-source:
-  repo_url: "{{repo_url}}"
-  branch: "{{branch}}"
-  docs_root: "{{docs_root}}"
+corpus:
+  name: "{{project_name}}"
+  display_name: "{{project_display_name}}"
+  created_at: null
+
+# Multiple sources - each with its own type and tracking
+sources:
+  - id: "{{source_id}}"
+    type: "git"
+    repo_url: "{{repo_url}}"
+    repo_owner: "{{repo_owner}}"
+    repo_name: "{{repo_name}}"
+    branch: "{{branch}}"
+    docs_root: "{{docs_root}}"
+    last_commit_sha: null
+    last_indexed_at: null
 
 index:
-  last_commit_sha: null
-  last_indexed_at: null
   format: "markdown"
+  last_updated_at: null
 
 settings:
   include_patterns:
