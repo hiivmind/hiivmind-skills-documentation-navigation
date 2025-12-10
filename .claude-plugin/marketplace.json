@@ -3,6 +3,7 @@
   "owner": {
     "name": "hiivmind"
   },
+  "repository": "https://github.com/hiivmind/hiivmind-corpus",
   "metadata": {
     "description": "Meta-plugin for creating documentation corpus skills - index and navigate any open source project docs",
     "version": "1.0.0"
@@ -13,7 +14,14 @@
       "source": "./",
       "description": "Create, build, and maintain documentation corpus skills for any project",
       "version": "1.0.0",
-      "keywords": ["documentation", "corpus", "meta-plugin", "skills", "navigation", "indexing"]
+      "keywords": [
+        "documentation",
+        "corpus",
+        "meta-plugin",
+        "skills",
+        "navigation",
+        "indexing"
+      ]
     }
   ]
 }
