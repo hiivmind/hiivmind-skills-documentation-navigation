@@ -204,8 +204,33 @@ All file paths use the format: `{source_id}:{relative_path}`
 1. Organize by user preference (by source, by topic, or mixed)
 2. For each section, list key documents with source-prefixed paths
 3. Add brief descriptions from content
-4. Show draft to user for feedback
-5. Iterate until user is satisfied
+4. **Detect large structured files** and add access hints (see below)
+5. Show draft to user for feedback
+6. Iterate until user is satisfied
+
+### Detecting Large Structured Files
+
+During scanning, identify files that are too large to read directly:
+
+```bash
+# Find files over 1000 lines
+find .source/{source_id} -name "*.graphql" -o -name "*.json" -o -name "*.yaml" | xargs wc -l | awk '$1 > 1000'
+```
+
+**File types to check:**
+- GraphQL schemas (`.graphql`, `.gql`)
+- OpenAPI/Swagger specs (`.yaml`, `.json`)
+- JSON Schema files
+- Large config files
+- Any file > 1000 lines
+
+**Mark these in the index with `⚡ GREP`:**
+
+```markdown
+- **GraphQL Schema** `graphql-schema:schema.docs.graphql` ⚡ GREP - Complete API schema (70k lines). Search with: `grep -n "^type {TypeName}" ... -A 30`
+```
+
+The `⚡ GREP` marker tells the navigator to use Grep instead of Read. Include an example search pattern relevant to the file type.
 
 ### Iteration Prompts
 

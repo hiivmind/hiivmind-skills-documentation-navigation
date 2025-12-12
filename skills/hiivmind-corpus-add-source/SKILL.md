@@ -204,11 +204,35 @@ Ask user:
 ### If yes:
 
 1. Scan the new source for available documents
-2. Show document list to user
-3. Ask which documents to include
-4. Collaboratively add entries to `data/index.md`
-5. Use `{source_id}:{path}` format for all entries
-6. Update `last_indexed_at` for the source in config
+2. **Detect large structured files** (see below)
+3. Show document list to user
+4. Ask which documents to include
+5. Collaboratively add entries to `data/index.md`
+6. Use `{source_id}:{path}` format for all entries
+7. Update `last_indexed_at` for the source in config
+
+### Detecting Large Structured Files
+
+Check for files that are too large to read directly:
+
+```bash
+# Find files over 1000 lines
+wc -l {source_path}/*.graphql {source_path}/*.json {source_path}/*.yaml 2>/dev/null | awk '$1 > 1000'
+```
+
+**File types to check:**
+- GraphQL schemas (`.graphql`, `.gql`)
+- OpenAPI/Swagger specs (`.yaml`, `.json`)
+- JSON Schema files
+- Any file > 1000 lines
+
+**Mark these in the index with `⚡ GREP`:**
+
+```markdown
+- **GraphQL Schema** `source-id:schema.graphql` ⚡ GREP - API schema (15k lines). Search with: `grep -n "^type {Name}" ... -A 30`
+```
+
+The `⚡ GREP` marker tells the navigator to use Grep instead of Read.
 
 Example entries:
 ```markdown

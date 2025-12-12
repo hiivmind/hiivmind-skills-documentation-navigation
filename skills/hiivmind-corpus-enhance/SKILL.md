@@ -133,6 +133,29 @@ kent-testing-blog (web):
 - Related docs that could be grouped together
 - Anchor points (#headings) for specific topics within large files
 - Cross-source connections (e.g., blog post explaining library feature)
+- **Large structured files** that need special handling (see below)
+
+### Detecting Large Structured Files
+
+When enhancing, check if any discovered files are too large to read:
+
+```bash
+wc -l {file_path}
+```
+
+**If file > 1000 lines**, mark it with `⚡ GREP` in the index:
+
+```markdown
+- **OpenAPI Spec** `api-docs:openapi.yaml` ⚡ GREP - Full API spec (5k lines). Search with: `grep -n "/users" ... -A 20`
+```
+
+Common patterns for large file types:
+
+| File Type | Search Pattern |
+|-----------|----------------|
+| GraphQL | `grep -n "^type {Name}" file -A 30` |
+| OpenAPI | `grep -n "/{path}" file -A 20` |
+| JSON Schema | `grep -n '"{property}"' file -A 10` |
 
 ---
 
