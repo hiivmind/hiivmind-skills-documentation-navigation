@@ -1,0 +1,25 @@
+# {{project_display_name}} Documentation Corpus
+
+A curated documentation corpus for {{project_display_name}} is available. Use the **hiivmind-corpus-{{project_name}}-navigate** skill when you need to look up {{project_display_name}} documentation.
+
+## When to Use
+
+- Working with {{project_display_name}} APIs, functions, or configuration
+- Debugging {{project_display_name}}-related issues
+- Need accurate, up-to-date {{project_display_name}} documentation
+- Implementing new features using {{project_display_name}}
+
+## How to Invoke
+
+Say something like:
+- "Look up {{project_display_name}} docs for..."
+- "Check the {{project_display_name}} corpus for..."
+- "What does the {{project_display_name}} documentation say about..."
+
+## Key Topics
+
+{{skill_topics}}
+
+## Example Questions
+
+{{example_questions}}

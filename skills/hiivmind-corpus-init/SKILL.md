@@ -349,6 +349,7 @@ Templates are in this plugin's `templates/` directory. To find them:
 |----------|---------|---------|
 | `navigate-skill.md.template` | The navigate skill | All types |
 | `config.yaml.template` | Source config + index tracking | All types |
+| `project-awareness.md.template` | CLAUDE.md snippet for projects using this corpus | All types |
 | `plugin.json.template` | Plugin manifest | Plugin types only |
 | `readme.md.template` | Plugin documentation | Single-corpus only |
 | `gitignore.template` | Ignore `.source/` | Plugin types only |
@@ -388,6 +389,7 @@ Fill these from Phase 1 inputs and Phase 4 research:
 ├── data/
 │   ├── config.yaml       # From config.yaml.template
 │   ├── index.md          # Placeholder (see below)
+│   ├── project-awareness.md  # CLAUDE.md snippet for projects
 │   └── uploads/          # For local sources (created when needed)
 ├── .source/              # Cloned git sources
 │   └── {source_id}/      # Each source in its own directory
@@ -398,6 +400,7 @@ Fill these from Phase 1 inputs and Phase 4 research:
 **Files from templates:**
 - `SKILL.md` ← `templates/navigate-skill.md.template`
 - `data/config.yaml` ← `templates/config.yaml.template`
+- `data/project-awareness.md` ← `templates/project-awareness.md.template`
 
 **Create manually:**
 - `data/index.md` - Simple placeholder:
@@ -419,6 +422,7 @@ Fill these from Phase 1 inputs and Phase 4 research:
         ├── data/
         │   ├── config.yaml       # From config.yaml.template
         │   ├── index.md          # Placeholder
+        │   ├── project-awareness.md  # CLAUDE.md snippet (usually not needed for repo-local)
         │   └── uploads/          # For local sources (created when needed)
         ├── .source/              # Cloned git sources (gitignored)
         │   └── {source_id}/      # Each source in its own directory
@@ -429,6 +433,7 @@ Fill these from Phase 1 inputs and Phase 4 research:
 **Files from templates:**
 - `SKILL.md` ← `templates/navigate-skill.md.template`
 - `data/config.yaml` ← `templates/config.yaml.template`
+- `data/project-awareness.md` ← `templates/project-awareness.md.template`
 
 **Create manually:**
 - `data/index.md` - Simple placeholder (same as user-level)
@@ -455,6 +460,7 @@ The current directory becomes the plugin root:
 ├── data/
 │   ├── config.yaml               # From config.yaml.template
 │   ├── index.md                  # Placeholder
+│   ├── project-awareness.md      # CLAUDE.md snippet for projects using this corpus
 │   └── uploads/                  # For local sources (created when needed)
 ├── .source/                      # Cloned git sources (gitignored)
 │   └── {source_id}/              # Each source in its own directory
@@ -469,6 +475,7 @@ The current directory becomes the plugin root:
 - `.claude-plugin/plugin.json` ← `templates/plugin.json.template`
 - `skills/navigate/SKILL.md` ← `templates/navigate-skill.md.template`
 - `data/config.yaml` ← `templates/config.yaml.template`
+- `data/project-awareness.md` ← `templates/project-awareness.md.template`
 - `CLAUDE.md` ← `templates/claude.md.template`
 - `.gitignore` ← `templates/gitignore.template`
 - `README.md` ← `templates/readme.md.template`
@@ -500,6 +507,7 @@ The current directory becomes a marketplace with this corpus as first plugin:
     ├── data/
     │   ├── config.yaml           # From config.yaml.template
     │   ├── index.md              # Placeholder
+    │   ├── project-awareness.md  # CLAUDE.md snippet for projects
     │   └── uploads/
     ├── .source/                  # Cloned git sources (gitignored)
     └── .cache/                   # Cached web content (gitignored)
@@ -539,6 +547,7 @@ Add new plugin as a sibling to existing plugins:
     ├── data/
     │   ├── config.yaml           # From config.yaml.template
     │   ├── index.md              # Placeholder
+    │   ├── project-awareness.md  # CLAUDE.md snippet for projects
     │   └── uploads/
     ├── .source/                  # Cloned git sources (gitignored)
     └── .cache/                   # Cached web content (gitignored)
