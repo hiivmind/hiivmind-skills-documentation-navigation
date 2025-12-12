@@ -158,7 +158,8 @@ The collaborative index building. Rather than Claude guessing what matters, you 
 │   ├── hiivmind-corpus-add-source/ # Add sources to existing corpus
 │   ├── hiivmind-corpus-build/      # Analyze docs, build index
 │   ├── hiivmind-corpus-enhance/    # Deepen specific topics
-│   └── hiivmind-corpus-refresh/    # Refresh from upstream changes
+│   ├── hiivmind-corpus-refresh/    # Refresh from upstream changes
+│   └── hiivmind-corpus-upgrade/    # Upgrade existing corpora to latest standards
 ├── templates/                      # Templates for generated skills
 └── docs/                           # Specifications
 ```
@@ -174,6 +175,9 @@ hiivmind-corpus-init  →  hiivmind-corpus-build  →  hiivmind-corpus-refresh
                                  ↓
                         hiivmind-corpus-enhance
                            (deepen topics)
+                                 ↓
+                        hiivmind-corpus-upgrade
+                      (when meta-plugin evolves)
 ```
 
 | Skill | When | What |
@@ -183,6 +187,7 @@ hiivmind-corpus-init  →  hiivmind-corpus-build  →  hiivmind-corpus-refresh
 | `hiivmind-corpus-build` | After adding sources | Analyzes all sources, builds unified index |
 | `hiivmind-corpus-enhance` | As needed | Expands coverage on specific topics (can span sources) |
 | `hiivmind-corpus-refresh` | Ongoing | Checks each source for updates, refreshes index |
+| `hiivmind-corpus-upgrade` | When meta-plugin updates | Brings existing corpora to latest template standards |
 
 ## Usage
 
@@ -266,6 +271,68 @@ Each source type has different refresh behavior:
 - **local**: Detect new/modified files by timestamp
 - **web**: Show cache age, re-fetch with user approval
 
+### Make projects aware of your corpus
+
+```
+"Add project awareness to my Python project's CLAUDE.md"
+```
+
+Each corpus includes a `data/project-awareness.md` file with a ready-to-use snippet. When working in a project that uses a documented library, inject this snippet into the project's CLAUDE.md so Claude knows to use the corpus.
+
+### Upgrade existing corpora
+
+```
+"Upgrade my polars corpus to latest standards"
+"Upgrade all corpora in this marketplace"
+```
+
+When the meta-plugin adds new features (like project awareness or tiered index support), use `hiivmind-corpus-upgrade` to bring existing corpora up to date. It detects missing files and sections, then applies upgrades with your approval.
+
+## Advanced Features
+
+### Tiered Indexes (Large Corpora)
+
+For documentation sets with 500+ files, a single index becomes unwieldy. The build skill offers tiered indexing:
+
+```
+data/
+├── index.md              # Main index with section summaries + links
+├── index-reference.md    # Detailed API reference entries
+├── index-guides.md       # Detailed guides/tutorials
+└── index-concepts.md     # Detailed conceptual docs
+```
+
+The main index provides quick lookups and links to detailed sub-indexes. The enhance and refresh skills understand this structure and update the appropriate files.
+
+### Large Structured Files
+
+Some documentation includes large structured files (GraphQL schemas, OpenAPI specs, JSON schemas) that are too large to read directly. These are marked in the index with `⚡ GREP`:
+
+```markdown
+- **GraphQL Schema** `api-docs:schema.graphql` ⚡ GREP - API schema (15k lines). Search with: `grep -n "^type {Name}" ... -A 30`
+```
+
+The navigate skill uses Grep instead of Read for these files, searching for specific definitions.
+
+### Project Awareness
+
+Projects using a documented library may not know a corpus skill is available. Each corpus includes `data/project-awareness.md`—a snippet to add to any project's CLAUDE.md:
+
+```markdown
+# Polars Documentation Corpus
+
+A curated documentation corpus for Polars is available. Use the
+**hiivmind-corpus-polars-navigate** skill when you need to look up
+Polars documentation.
+
+## When to Use
+- Working with Polars DataFrames, expressions, or lazy evaluation
+- Questions about data transformation, aggregation, or I/O
+...
+```
+
+This makes Claude proactively use the corpus when answering questions in that project.
+
 ## Design Principles
 
 **Human-readable indexes**: Simple markdown with heading hierarchy, not complex YAML schemas.
@@ -276,7 +343,11 @@ Each source type has different refresh behavior:
 
 **Per-project discoverability**: Each corpus skill has its own navigate skill with a specific description (e.g., "Find ClickHouse documentation for data modeling, ETL, query optimization").
 
-**Centralized refresh**: One `hiivmind-corpus-refresh` skill works across all corpus skills.
+**Project awareness**: Corpora include snippets for injecting into project CLAUDE.md files, making Claude proactively use documentation.
+
+**Upgradeable**: As the meta-plugin evolves, existing corpora can be upgraded to latest standards via `hiivmind-corpus-upgrade`.
+
+**Scalable**: Large corpora (500+ files) use tiered indexes; large structured files use grep-based navigation.
 
 ## Example: Multi-Source Corpus
 
@@ -285,8 +356,9 @@ hiivmind-corpus-fullstack/
 ├── .claude-plugin/plugin.json
 ├── skills/navigate/SKILL.md       # "Find fullstack documentation..."
 ├── data/
-│   ├── config.yaml                # Multi-source config (schema_version: 2)
+│   ├── config.yaml                # Multi-source config
 │   ├── index.md                   # Unified index with source prefixes
+│   ├── project-awareness.md       # Snippet for project CLAUDE.md
 │   └── uploads/                   # Local documents
 │       └── team-standards/
 │           ├── coding-guidelines.md
@@ -322,7 +394,8 @@ hiivmind-corpus-clickhouse/
 ├── skills/navigate/SKILL.md     # "Find ClickHouse documentation..."
 ├── data/
 │   ├── config.yaml              # Single source (still uses sources array)
-│   └── index.md                 # ~150 key docs organized by topic
+│   ├── index.md                 # ~150 key docs organized by topic
+│   └── project-awareness.md     # Snippet for project CLAUDE.md
 └── .source/
     └── clickhouse/              # Local clone (gitignored)
 ```
