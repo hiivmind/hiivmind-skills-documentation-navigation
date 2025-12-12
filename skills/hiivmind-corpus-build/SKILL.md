@@ -133,6 +133,18 @@ Found 3 sources:
    Articles: testing-implementation-details.md, ...
 ```
 
+### Large Corpus Detection
+
+Calculate total file count across all sources. If **total > 500 files**, flag for segmentation discussion in Step 3.
+
+**Thresholds:**
+| Total Files | Recommendation |
+|-------------|----------------|
+| < 200 | Single index works well |
+| 200-500 | Consider segmentation |
+| 500-2000 | Recommend segmentation |
+| > 2000 | Strongly recommend segmentation |
+
 ---
 
 ## Step 3: Ask
@@ -153,6 +165,54 @@ Present findings and ask the user:
 3. **Ask about organization:**
    - "How should I organize the index? By source? By topic across sources?"
    - "Should I include all docs or focus on key topics?"
+
+### Segmentation Discussion (for large corpora)
+
+**If total files > 500**, present segmentation options:
+
+> "This is a large documentation set ({count} files). A single index file would be unwieldy. Let me explain your options:"
+
+**Strategy A: Tiered Index (Recommended for 500+ files)**
+```
+data/
+├── index.md              # Main index with section summaries + links
+├── index-reference.md    # Detailed API reference entries
+├── index-guides.md       # Detailed guides/tutorials
+└── index-concepts.md     # Detailed conceptual docs
+```
+
+The main `index.md` contains:
+- High-level topic summaries (1-2 sentences each)
+- Links to detailed sub-indexes
+- Quick reference for common lookups
+
+Sub-indexes contain:
+- Full entry listings for their section
+- Detailed descriptions and paths
+
+**Strategy B: By Section (Good for 200-500 files)**
+```
+data/
+├── index.md              # Single file, organized by section headers
+```
+
+One file, but aggressively curated:
+- Only include most-used 20-30% of docs
+- Group by workflow (getting started → common tasks → advanced)
+- Skip auto-generated API docs (use source directly)
+
+**Strategy C: By Source (Good for multi-source corpora)**
+```
+data/
+├── index.md              # Master index linking to source indexes
+├── index-{source1}.md    # Detailed index for source 1
+└── index-{source2}.md    # Detailed index for source 2
+```
+
+**Ask the user:**
+- "Which strategy fits your workflow?"
+- "For tiered indexing: what are the main sections you'd want?"
+- "Should I prioritize breadth (cover everything lightly) or depth (detailed coverage of key areas)?"
 
 ---
 
@@ -199,6 +259,84 @@ All file paths use the format: `{source_id}:{relative_path}`
 | local | `local:{source_id}/{filename}` | `local:team-standards/guidelines.md` |
 | web | `web:{source_id}/{cached_file}` | `web:kent-blog/article.md` |
 
+### Tiered Index Format (for large corpora)
+
+When using Strategy A (tiered), create a main index that links to sub-indexes:
+
+**Main index (`data/index.md`):**
+```markdown
+# GitHub Documentation Corpus
+
+> 3,200+ documentation files organized by topic
+> Last updated: 2025-01-15
+
+## How to Use This Index
+
+This corpus uses a **tiered index** due to its size. Start here for an overview, then drill into sub-indexes for detailed entries.
+
+---
+
+## Quick Reference
+
+Common lookups (full path for direct access):
+
+- **Creating a repository** `github:get-started/quickstart/create-a-repo.md`
+- **GitHub Actions workflow syntax** `github:actions/using-workflows/workflow-syntax-for-github-actions.md`
+- **REST API authentication** `github:rest/overview/authenticating-to-the-rest-api.md`
+
+---
+
+## Getting Started
+*First steps with GitHub - creating accounts, repos, basic workflows*
+
+→ See [index-getting-started.md](index-getting-started.md) for 45 detailed entries
+
+Key topics: Account setup, repository creation, basic Git operations, GitHub Desktop
+
+## Actions & CI/CD
+*GitHub Actions workflows, runners, marketplace actions*
+
+→ See [index-actions.md](index-actions.md) for 280 detailed entries
+
+Key topics: Workflow syntax, triggers, runners, secrets, reusable workflows, marketplace
+
+## REST API
+*Complete REST API reference*
+
+→ See [index-rest-api.md](index-rest-api.md) for 450 detailed entries
+
+Key topics: Authentication, endpoints by resource, pagination, rate limits
+
+## GraphQL API
+*GraphQL schema and queries*
+
+→ See [index-graphql.md](index-graphql.md) for 180 detailed entries
+
+Key topics: Schema exploration, common queries, mutations, pagination
+```
+
+**Sub-index (`data/index-actions.md`):**
+```markdown
+# GitHub Actions - Detailed Index
+
+> Part of the GitHub Documentation Corpus
+> Back to [main index](index.md)
+
+---
+
+## Workflow Basics
+
+- **Workflow syntax reference** `github:actions/using-workflows/workflow-syntax-for-github-actions.md` - Complete YAML syntax for workflow files
+- **Triggering workflows** `github:actions/using-workflows/triggering-a-workflow.md` - Events that can trigger workflow runs
+- **Workflow commands** `github:actions/using-workflows/workflow-commands-for-github-actions.md` - Commands for communication between steps
+
+## Runners
+
+- **About self-hosted runners** `github:actions/hosting-your-own-runners/about-self-hosted-runners.md` - When and why to use your own runners
+- **Runner groups** `github:actions/hosting-your-own-runners/managing-access-to-self-hosted-runners-using-groups.md` - Organizing runners for teams
+...
+```
+
 ### Building Process
 
 1. Organize by user preference (by source, by topic, or mixed)
@@ -207,6 +345,14 @@ All file paths use the format: `{source_id}:{relative_path}`
 4. **Detect large structured files** and add access hints (see below)
 5. Show draft to user for feedback
 6. Iterate until user is satisfied
+
+**For tiered indexes (Strategy A):**
+1. First, identify the major sections (5-10 top-level categories)
+2. Build the main `index.md` with section summaries and links
+3. For each section, build a sub-index file (`index-{section}.md`)
+4. Include a "Quick Reference" section in main index with 10-20 most common lookups
+5. Each sub-index should link back to main index
+6. Show main index first, then build sub-indexes one at a time with user feedback
 
 ### Detecting Large Structured Files
 

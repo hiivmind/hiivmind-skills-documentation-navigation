@@ -10,11 +10,41 @@ Find and retrieve relevant documentation from the {{project_display_name}} corpu
 ## Process
 
 1. **Read the index**: `data/index.md`
-2. **Parse path format**: `{source_id}:{relative_path}`
-3. **Check for `⚡ GREP` marker** - if present, use Grep instead of Read (see Large Structured Files section)
-4. **Look up source** in `data/config.yaml` by ID
-5. **Get content** based on source type (see Source Access below)
-6. **Answer** with citation to source and file path
+2. **Check for tiered index**: If main index links to sub-indexes (e.g., `→ See [index-actions.md]`), this is a tiered corpus
+3. **Find relevant section**: Match user's question to index sections
+4. **For tiered indexes**: Read the appropriate sub-index file for detailed entries
+5. **Parse path format**: `{source_id}:{relative_path}`
+6. **Check for `⚡ GREP` marker** - if present, use Grep instead of Read (see Large Structured Files section)
+7. **Look up source** in `data/config.yaml` by ID
+8. **Get content** based on source type (see Source Access below)
+9. **Answer** with citation to source and file path
+
+## Tiered Index Navigation
+
+Large corpora may use **tiered indexes** with a main index linking to detailed sub-indexes:
+
+```
+data/
+├── index.md              # Main index with section summaries
+├── index-actions.md      # Detailed: GitHub Actions
+├── index-rest-api.md     # Detailed: REST API
+└── index-graphql.md      # Detailed: GraphQL
+```
+
+**How to navigate:**
+
+1. **Start with main index** (`data/index.md`)
+2. **Identify the relevant section** from user's question
+3. **If section links to sub-index** (e.g., `→ See [index-actions.md](index-actions.md)`):
+   - Read that sub-index for detailed entries
+   - The sub-index has the actual file paths
+4. **Quick Reference entries** in main index have direct paths - use those for common lookups
+
+**Example flow:**
+- User asks: "How do I set up a self-hosted runner?"
+- Read `data/index.md` → find "Actions & CI/CD" section → links to `index-actions.md`
+- Read `data/index-actions.md` → find "Runners" section → find self-hosted runner entry
+- Fetch the actual doc file using the path
 
 ## Path Format
 
