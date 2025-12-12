@@ -9,28 +9,64 @@ Expand and deepen specific sections of an existing corpus index. Can search acro
 
 ## Prerequisites
 
-Run from within a corpus skill directory (e.g., `hiivmind-corpus-polars/`).
+Run from within a corpus skill directory. Valid locations:
 
-Requires an initialized index at `data/index.md` (run `hiivmind-corpus-build` first).
+| Destination Type | Location |
+|------------------|----------|
+| User-level skill | `~/.claude/skills/{skill-name}/` |
+| Repo-local skill | `{repo}/.claude-plugin/skills/{skill-name}/` |
+| Single-corpus plugin | `{plugin-root}/` (with `.claude-plugin/plugin.json`) |
+| Multi-corpus plugin | `{marketplace}/{plugin-name}/` |
+
+Requires:
+- `data/config.yaml` with at least one source configured
+- `data/index.md` with real entries (run `hiivmind-corpus-build` first)
 
 **Note:** This skill enhances index *depth*, not *freshness*. Use `hiivmind-corpus-refresh` to sync with upstream changes.
 
-## When to Use
+## When to Use vs Other Skills
 
-- Initial index was broad but shallow on a topic you now need
-- You've started using a feature that needs better coverage
-- A section has grown stale in usefulness (not commits)
-- You want to add subsections or reorganize a topic
+| Situation | Use This Skill? | Instead Use |
+|-----------|-----------------|-------------|
+| Initial index was shallow on a topic | ✅ Yes | - |
+| Need more detail on a feature | ✅ Yes | - |
+| Want to reorganize or add subsections | ✅ Yes | - |
+| Upstream docs have changed | ❌ No | `hiivmind-corpus-refresh` |
+| Want to add a new source (git/local/web) | ❌ No | `hiivmind-corpus-add-source` |
+| Corpus has no sources yet | ❌ No | `hiivmind-corpus-add-source` |
+| First-time index building | ❌ No | `hiivmind-corpus-build` |
 
 ## Process
 
 ```
-1. READ INDEX  →  2. ASK USER  →  3. EXPLORE  →  4. ENHANCE  →  5. SAVE
+1. VALIDATE  →  2. READ INDEX  →  3. ASK USER  →  4. EXPLORE  →  5. ENHANCE  →  6. SAVE
 ```
 
 ---
 
-## Step 1: Read Index
+## Step 1: Validate Prerequisites
+
+Before proceeding, verify the corpus is ready for enhancement:
+
+```bash
+# Read config
+cat data/config.yaml
+```
+
+**Check 1: Sources exist**
+- If `sources:` array is empty → **STOP**: Run `hiivmind-corpus-add-source` to add sources first
+- If sources exist → Continue
+
+**Check 2: Index exists**
+```bash
+cat data/index.md
+```
+- If only placeholder text ("Run hiivmind-corpus-build...") → **STOP**: Run `hiivmind-corpus-build` first
+- If index has real entries → Continue
+
+---
+
+## Step 2: Read Index
 
 Load the current index to understand existing coverage:
 
@@ -38,14 +74,35 @@ Load the current index to understand existing coverage:
 cat data/index.md
 ```
 
-Identify:
+### Detect Index Structure
+
+Check if this is a **tiered index** (for large corpora):
+
+```bash
+# Check for sub-index files
+ls data/index-*.md 2>/dev/null
+```
+
+**Single index:** Only `data/index.md` exists
+**Tiered index:** Multiple files like `data/index.md`, `data/index-reference.md`, `data/index-guides.md`
+
+For tiered indexes:
+- Main `index.md` contains section summaries and links to sub-indexes
+- Sub-indexes contain detailed entries for each section
+- User may want to enhance main index OR a specific sub-index
+
+Ask user: "This corpus uses tiered indexing. Do you want to enhance the main index overview, or a specific section like `index-reference.md`?"
+
+### Identify Enhancement Opportunities
+
 - Current sections and their depth
 - Topics with minimal entries
 - Areas that could benefit from subsections
+- Sections that link to sub-indexes (tiered only)
 
 ---
 
-## Step 2: Ask User
+## Step 3: Ask User
 
 Present the current structure and ask:
 
@@ -63,7 +120,7 @@ Present the current structure and ask:
 
 ---
 
-## Step 3: Explore
+## Step 4: Explore
 
 Search for relevant documentation not yet in the index.
 
@@ -159,9 +216,9 @@ Common patterns for large file types:
 
 ---
 
-## Step 4: Enhance
+## Step 5: Enhance
 
-Update `data/index.md` collaboratively:
+Update `data/index.md` (or target sub-index file) collaboratively:
 
 ### Enhancement Patterns
 
@@ -217,17 +274,42 @@ All paths use the format: `{source_id}:{relative_path}`
 
 ---
 
-## Step 5: Save
+## Step 6: Save
 
-Update `data/index.md` with enhancements.
+Update target index file(s) with enhancements.
 
-**Do NOT update** `last_commit_sha` in config - that's for `docs-refresh`.
+**Do NOT update** `last_commit_sha` in config - that's for `hiivmind-corpus-refresh`.
 
-Remind user to commit:
+### For Single Index
 ```bash
 git add data/index.md
 git commit -m "Enhance {topic} section in docs index"
 ```
+
+### For Tiered Index
+```bash
+# If enhanced main index
+git add data/index.md
+# If enhanced sub-index
+git add data/index-{section}.md
+# If both
+git add data/index.md data/index-{section}.md
+
+git commit -m "Enhance {topic} section in docs index"
+```
+
+---
+
+## Next Steps Guidance
+
+After enhancement, suggest appropriate next actions:
+
+| Situation | Recommend |
+|-----------|-----------|
+| User mentions wanting to add new docs from a different repo | `hiivmind-corpus-add-source` |
+| User asks about upstream changes | `hiivmind-corpus-refresh` |
+| Enhanced section now feels too large | Consider tiered indexing (see `hiivmind-corpus-build`) |
+| Index is still shallow in other areas | Run `hiivmind-corpus-enhance` again on those sections |
 
 ---
 
@@ -237,17 +319,18 @@ git commit -m "Enhance {topic} section in docs index"
 
 **User**: "Enhance the Query Optimization section"
 
-**Step 1**: Read index, find Query Optimization has 3 entries (all from `polars` source)
+**Step 1**: Validate - config is schema_version 2, sources exist, index has entries
+**Step 2**: Read index, find Query Optimization has 3 entries (all from `polars` source)
 
-**Step 2**:
+**Step 3**:
 - User: "I'm working on slow queries and need more detail"
 - User: "Focus on practical optimization, skip theory"
 
-**Step 3**: Search `.source/polars/docs/` for optimization, performance, explain
+**Step 4**: Search `.source/polars/docs/` for optimization, performance, explain
 - Found 8 additional relevant files
 - Found useful anchors in settings.md
 
-**Step 4**: Propose expanded section:
+**Step 5**: Propose expanded section:
 ```markdown
 ## Query Optimization
 *Improving query performance*
@@ -266,7 +349,7 @@ git commit -m "Enhance {topic} section in docs index"
 
 User: "Perfect"
 
-**Step 5**: Save, remind to commit
+**Step 6**: Save, remind to commit
 
 ---
 
@@ -274,18 +357,19 @@ User: "Perfect"
 
 **User**: "Enhance the Testing section with more depth"
 
-**Step 1**: Read index, find Testing section has entries from `react` source only
+**Step 1**: Validate - config is schema_version 2, sources exist, index has entries
+**Step 2**: Read index, find Testing section has entries from `react` source only
 
-**Step 2**:
+**Step 3**:
 - User: "I want to include the Kent C. Dodds blog posts too"
 - User: "Focus on practical patterns"
 
-**Step 3**: Search across sources:
+**Step 4**: Search across sources:
 - `react` (git): Found 3 testing docs in `.source/react/src/content/learn/`
 - `kent-testing-blog` (web): Found 3 cached articles in `.cache/web/kent-testing-blog/`
 - `team-standards` (local): Found testing.md in `data/uploads/team-standards/`
 
-**Step 4**: Propose cross-source section:
+**Step 5**: Propose cross-source section:
 ```markdown
 ## Testing Best Practices
 *Comprehensive testing guidance from multiple sources*
@@ -304,7 +388,50 @@ User: "Perfect"
 
 User: "Great, but can you add a subsection for mocking?"
 
-**Step 5**: Save, remind to commit
+**Step 6**: Save, remind to commit
+
+---
+
+### Tiered Index Enhancement
+
+**User**: "Enhance the Actions section of my GitHub docs corpus"
+
+**Step 1**: Validate prerequisites - all pass
+**Step 2**: Read index
+- Found `data/index.md` with tiered structure
+- Found `data/index-actions.md` sub-index linked from main index
+- Ask user: "This corpus uses tiered indexing. Do you want to enhance the main index Actions summary, or the detailed `index-actions.md`?"
+
+User: "The detailed actions sub-index"
+
+**Step 3**: Ask user what they need
+- User: "I need more coverage of reusable workflows"
+
+**Step 4**: Explore `.source/github/actions/using-workflows/` for reusable workflow docs
+- Found 5 additional files not in current index
+
+**Step 5**: Propose additions to `data/index-actions.md`:
+```markdown
+### Reusable Workflows
+- **Creating reusable workflows** `github:actions/using-workflows/reusing-workflows.md` - Build once, use everywhere
+- **Calling reusable workflows** `github:actions/using-workflows/calling-reusable-workflows.md` - Using workflows from other repos
+- **Workflow inputs and outputs** `github:actions/using-workflows/workflow-inputs-outputs.md` - Passing data between workflows
+```
+
+**Step 6**: Save `data/index-actions.md`, remind to commit
+
+---
+
+### Blocked: No Sources Configured
+
+**User**: "Enhance the API section"
+
+**Step 1**: Validate prerequisites
+- Read config: `sources:` array is empty
+
+**Response**: "This corpus doesn't have any sources configured yet. You need to add documentation sources before enhancement is possible.
+
+**Recommended next step:** Run `hiivmind-corpus-add-source` to add a git repo, local files, or web pages."
 
 ---
 

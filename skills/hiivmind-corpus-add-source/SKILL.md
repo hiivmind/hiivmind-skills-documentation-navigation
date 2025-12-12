@@ -10,7 +10,7 @@ Add a new documentation source to an existing corpus skill.
 ## Process
 
 ```
-1. LOCATE  →  2. MIGRATE?  →  3. TYPE  →  4. COLLECT  →  5. SETUP  →  6. INDEX?
+1. LOCATE  →  2. TYPE  →  3. COLLECT  →  4. SETUP  →  5. INDEX?
 ```
 
 ## Prerequisites
@@ -29,43 +29,11 @@ cat data/config.yaml
 
 Verify:
 - File exists
-- Check `schema_version` (should be 2 for multi-source)
 - List existing sources to user
 
 ---
 
-## Step 2: Migration Check
-
-If `schema_version` is missing or 1 (old single-source format):
-
-1. Notify user: "This corpus uses the old single-source format. Migrating to multi-source format..."
-
-2. Read the old config structure:
-   ```yaml
-   source:
-     repo_url: "..."
-     branch: "main"
-     docs_root: "docs/"
-   index:
-     last_commit_sha: "abc123"
-     last_indexed_at: "2025-01-01T00:00:00Z"
-   ```
-
-3. Transform to new structure:
-   - Derive source_id from repo name (e.g., `polars`)
-   - Move `.source/` to `.source/{source_id}/`
-   - Convert to `sources:` array format
-
-4. Update `data/index.md`:
-   - Transform all paths from `path/to/file.md` to `{source_id}:path/to/file.md`
-
-5. Write updated config.yaml and index.md
-
-6. Show summary of migration changes
-
----
-
-## Step 3: Source Type
+## Step 2: Source Type
 
 Ask the user which type of source to add:
 
@@ -77,7 +45,7 @@ Ask the user which type of source to add:
 
 ---
 
-## Step 4: Collect Source Information
+## Step 3: Collect Source Information
 
 ### For Git Sources
 
@@ -110,7 +78,7 @@ Ask the user which type of source to add:
 
 ---
 
-## Step 5: Setup Source
+## Step 4: Setup Source
 
 ### Git Source Setup
 
@@ -196,7 +164,7 @@ Add to config.yaml:
 
 ---
 
-## Step 6: Index Prompt
+## Step 5: Index Prompt
 
 Ask user:
 > Would you like to add entries from this source to the index now?
@@ -254,16 +222,15 @@ Example entries:
 
 **User**: "Add TanStack Query docs to this corpus"
 
-**Step 1**: Read config, confirm multi-source format
-**Step 2**: No migration needed (already schema_version 2)
-**Step 3**: Source type: **git**
-**Step 4**: Collect:
+**Step 1**: Read config, list existing sources
+**Step 2**: Source type: **git**
+**Step 3**: Collect:
 - Repo: `https://github.com/TanStack/query`
 - Source ID: `tanstack-query`
 - Branch: `main`
 - Docs root: `docs/`
-**Step 5**: Clone to `.source/tanstack-query/`, add to config
-**Step 6**: Ask about indexing
+**Step 4**: Clone to `.source/tanstack-query/`, add to config
+**Step 5**: Ask about indexing
 
 ---
 
@@ -271,14 +238,13 @@ Example entries:
 
 **User**: "I want to add our team's API documentation"
 
-**Step 1**: Read config
-**Step 2**: No migration needed
-**Step 3**: Source type: **local**
-**Step 4**: Collect:
+**Step 1**: Read config, list existing sources
+**Step 2**: Source type: **local**
+**Step 3**: Collect:
 - Source ID: `team-api-docs`
 - Description: `Internal API documentation`
-**Step 5**: Create `data/uploads/team-api-docs/`, wait for files
-**Step 6**: Offer to index
+**Step 4**: Create `data/uploads/team-api-docs/`, wait for files
+**Step 5**: Offer to index
 
 ---
 
@@ -286,39 +252,20 @@ Example entries:
 
 **User**: "Add these testing blog posts to my corpus"
 
-**Step 1**: Read config
-**Step 2**: No migration needed
-**Step 3**: Source type: **web**
-**Step 4**: Collect:
+**Step 1**: Read config, list existing sources
+**Step 2**: Source type: **web**
+**Step 3**: Collect:
 - Source ID: `kent-testing-blog`
 - Description: `Testing best practices from Kent C. Dodds`
 - URLs:
   - `https://kentcdodds.com/blog/testing-implementation-details`
   - `https://kentcdodds.com/blog/common-mistakes-with-react-testing-library`
-**Step 5**:
+**Step 4**:
 - Fetch first URL, show content to user
 - User approves → save to `.cache/web/kent-testing-blog/testing-implementation-details.md`
 - Repeat for each URL
 - Add to config
-**Step 6**: Offer to index
-
----
-
-### Migrating Old Single-Source Corpus
-
-**User**: "Add Next.js docs to my Polars corpus"
-
-**Step 1**: Read config, find old format (no schema_version)
-**Step 2**: Migration needed:
-```
-Migrating to multi-source format...
-- Created source ID: polars
-- Moved .source/ → .source/polars/
-- Updated 47 index entries with 'polars:' prefix
-- Updated config.yaml to schema_version 2
-Migration complete!
-```
-**Step 3-6**: Continue with adding Next.js as new git source
+**Step 5**: Offer to index
 
 ---
 

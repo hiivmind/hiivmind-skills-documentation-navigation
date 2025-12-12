@@ -11,9 +11,8 @@ Prepare all sources and build the index collaboratively with the user.
 
 Run from within a corpus skill directory (e.g., `hiivmind-corpus-polars/`).
 
-Requires `data/config.yaml` with source configuration (schema_version 2):
+Requires `data/config.yaml` with source configuration:
 ```yaml
-schema_version: 2
 sources:
   - id: "polars"
     type: "git"
@@ -35,12 +34,6 @@ Read config and ensure all sources are available:
 ```bash
 cat data/config.yaml
 ```
-
-### Migration Check
-
-If `schema_version` is missing (old format), run migration first:
-- See `hiivmind-corpus-add-source` for migration process
-- Or notify user to run `hiivmind-corpus-add-source` which handles migration
 
 ### Prepare Each Source Type
 
