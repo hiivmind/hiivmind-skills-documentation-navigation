@@ -10,11 +10,11 @@ Most Claude Code skills help you do something directly—write code, search file
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  hiivmind-corpus (meta-skill)                                               │
+│  hiivmind-corpus (meta-plugin) - 6 skills                                   │
 │                                                                             │
-│  corpus-init  →  corpus-build  →  corpus-refresh                            │
-│       │              ↑                                                      │
-│       │         add-source  →  (add more sources)                           │
+│  corpus-init → corpus-build → corpus-refresh → corpus-upgrade               │
+│       │             ↑              ↓                                        │
+│       │        add-source      enhance                                      │
 │       ▼                                                                     │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ hiivmind-corpus-fullstack                                            │   │
@@ -33,11 +33,27 @@ The corpus skills you generate are:
 
 Think of it as a skill factory: you feed it documentation sources, and it produces a specialized corpus skill with a unified index.
 
-## Two ways to create corpus skills
+## Four ways to create corpus skills
 
-When you run `hiivmind-corpus-init`, you'll choose where the skill should live:
+When you run `hiivmind-corpus-init`, it detects your context and offers appropriate destination types:
 
-### Project-local skill
+### 1. User-level skill
+
+```
+~/.claude/skills/hiivmind-corpus-polars/
+├── SKILL.md
+├── data/
+│   ├── config.yaml
+│   ├── index.md
+│   └── project-awareness.md
+└── .source/polars/
+```
+
+**Best for:** Personal use across all your projects without sharing.
+
+**Example:** "I want Polars docs available everywhere I work."
+
+### 2. Repo-local skill
 
 ```
 your-project/
@@ -50,38 +66,54 @@ your-project/
     └── analysis.py
 ```
 
-**Best for:**
-- A specific project that needs library docs (e.g., data analysis project needing Polars)
-- Teams—everyone who clones the repo automatically gets the skill
-- No marketplace installation required
+**Best for:** Team sharing—everyone who clones the repo gets the skill automatically.
 
-**Example use case:** "I'm building a data pipeline and need quick access to Polars documentation while I work."
+**Example:** "Our data team all need Polars docs while working on this project."
 
-### Standalone plugin
+### 3. Single-corpus plugin
 
 ```
-hiivmind-corpus-polars/            ← Created as separate directory/repo
-├── .claude-plugin/
-│   └── plugin.json
-├── skills/navigate/
+hiivmind-corpus-react/                 ← This directory IS the plugin
+├── .claude-plugin/plugin.json
+├── skills/navigate/SKILL.md
 ├── data/
+├── CLAUDE.md
 └── README.md
 ```
 
-**Best for:**
-- Personal reuse across all your projects
-- Sharing via the Claude Code marketplace
-- Documentation you always want available
+**Best for:** Publishing a standalone corpus to the marketplace.
 
-**Example use case:** "I work with React constantly—I want React docs available in every project."
+**Example:** "I want to publish React docs as a reusable plugin."
 
-| Aspect | Project-local | Standalone |
-|--------|---------------|------------|
-| Location | `.claude-plugin/skills/hiivmind-corpus-{lib}/` | `hiivmind-corpus-{lib}/` separate repo |
-| Installation | None—just open the project | Marketplace install required |
-| Scope | This project only | All your projects |
-| Team sharing | Automatic (via git) | Each person installs |
-| Maintenance | Tied to project lifecycle | Independent lifecycle |
+### 4. Multi-corpus plugin (marketplace)
+
+```
+hiivmind-corpus-frontend/              ← Marketplace root
+├── .claude-plugin/
+│   ├── plugin.json
+│   └── marketplace.json
+├── hiivmind-corpus-react/             ← Child plugin
+│   ├── .claude-plugin/plugin.json
+│   ├── skills/navigate/
+│   └── data/
+├── hiivmind-corpus-vue/               ← Another child plugin
+│   └── ...
+└── README.md
+```
+
+**Best for:** Collections of related documentation (frontend frameworks, data tools, etc.).
+
+**Example:** "I want React, Vue, and Svelte docs in one installable package."
+
+### Comparison
+
+| Aspect | User-level | Repo-local | Single-corpus | Multi-corpus |
+|--------|------------|------------|---------------|--------------|
+| Location | `~/.claude/skills/` | `.claude-plugin/skills/` | Repo root | Marketplace + subdirs |
+| Scope | All your projects | One project | All (via install) | All (via install) |
+| Team sharing | No | Yes (via git) | Via marketplace | Via marketplace |
+| Marketplace | No | No | Yes | Yes |
+| Multiple corpora | No | No | No | Yes |
 
 ## Installation
 
