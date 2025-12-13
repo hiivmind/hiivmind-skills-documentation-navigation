@@ -28,6 +28,9 @@ The core value: Instead of relying on training data, web search, or on-demand fe
 │   ├── corpus-discovery-functions.sh # Find corpora across all locations
 │   ├── corpus-status-functions.sh    # Check index status and freshness
 │   ├── corpus-path-functions.sh      # Resolve paths within corpora
+│   ├── corpus-context-functions.sh   # Context detection for init
+│   ├── corpus-source-functions.sh    # Git/local/web source operations
+│   ├── corpus-scan-functions.sh      # File scanning and analysis
 │   └── corpus-index.md               # Library documentation
 │
 ├── templates/                        # Templates for generating new corpus skills
@@ -126,11 +129,16 @@ The `lib/corpus/` directory contains reusable bash functions following hiivmind-
 source "${CLAUDE_PLUGIN_ROOT}/lib/corpus/corpus-discovery-functions.sh"
 source "${CLAUDE_PLUGIN_ROOT}/lib/corpus/corpus-status-functions.sh"
 source "${CLAUDE_PLUGIN_ROOT}/lib/corpus/corpus-path-functions.sh"
+source "${CLAUDE_PLUGIN_ROOT}/lib/corpus/corpus-context-functions.sh"
+source "${CLAUDE_PLUGIN_ROOT}/lib/corpus/corpus-source-functions.sh"
+source "${CLAUDE_PLUGIN_ROOT}/lib/corpus/corpus-scan-functions.sh"
 
 # Composable operations
 discover_all | filter_built | list_names
 get_index_status "$corpus_path"
-get_navigate_skill_path "$corpus_path"
+analyze_context  # → "established-project" | "fresh" | "marketplace-existing"
+clone_source "https://github.com/user/repo" "source-id" "$corpus_path"
+count_docs ".source/polars/docs"
 ```
 
 | File | Functions | Purpose |
@@ -138,6 +146,9 @@ get_navigate_skill_path "$corpus_path"
 | `corpus-discovery-functions.sh` | `discover_*`, `filter_*`, `format_*` | Find installed corpora |
 | `corpus-status-functions.sh` | `get_*`, `check_*`, `compare_*` | Status and freshness |
 | `corpus-path-functions.sh` | `get_*_path`, `resolve_*`, `exists_*` | Path resolution |
+| `corpus-context-functions.sh` | `detect_*`, `analyze_*`, `scaffold_*`, `verify_*` | Context detection for init |
+| `corpus-source-functions.sh` | `clone_*`, `fetch_*`, `pull_*`, `parse_*` | Git/local/web source operations |
+| `corpus-scan-functions.sh` | `scan_*`, `detect_*`, `find_*`, `extract_*` | File scanning and analysis |
 | `corpus-index.md` | - | Full function documentation |
 
 ## Key Design Decisions
