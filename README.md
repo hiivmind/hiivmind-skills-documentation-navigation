@@ -64,7 +64,7 @@ claude mcp add-json hiivmind-corpus '{"type":"stdio","command":"claude","args":[
 | **User-level** | `~/.claude/skills/hiivmind-corpus-{lib}/` | Personal use everywhere |
 | **Repo-local** | `{repo}/.claude-plugin/skills/hiivmind-corpus-{lib}/` | Team sharing via git |
 | **Single-corpus** | `hiivmind-corpus-{lib}/` (standalone repo) | Marketplace publishing |
-| **Multi-corpus** | `{marketplace}/hiivmind-corpus-{lib}/` | Collections of related docs |
+| **Multi-corpus** | `{marketplace}/hiivmind-corpus-{lib}/` | Marketplace publishing (related projects) |
 
 ## Source Types
 
