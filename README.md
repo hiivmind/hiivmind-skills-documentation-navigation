@@ -215,7 +215,34 @@ Regardless of where you put them (user-level, repo-local, or marketplace), corpo
 
 ## Example Structures
 
-**Single-source corpus:**
+**User-level skill:**
+```
+~/.claude/skills/hiivmind-corpus-polars/
+├── SKILL.md                     # Navigate skill
+├── data/
+│   ├── config.yaml
+│   ├── index.md
+│   └── project-awareness.md
+└── .source/polars/              # Local clone
+```
+
+**Repo-local skill:**
+```
+my-data-project/
+├── .claude-plugin/
+│   └── skills/
+│       └── hiivmind-corpus-polars/
+│           ├── SKILL.md         # Navigate skill
+│           └── data/
+│               ├── config.yaml
+│               ├── index.md
+│               └── project-awareness.md
+├── .gitignore                   # Include: .claude-plugin/skills/*/.source/
+└── src/
+    └── analysis.py
+```
+
+**Single-corpus plugin:**
 ```
 hiivmind-corpus-polars/
 ├── .claude-plugin/plugin.json
