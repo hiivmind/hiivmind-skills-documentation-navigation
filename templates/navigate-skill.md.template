@@ -57,6 +57,17 @@ If grep finds matches:
 2. **Related hit**: Entry is in the right area → read that section for context
 3. **No hit in index**: The topic may not be indexed yet → report this as an index gap
 
+**CRITICAL: Use the EXACT path from the index!**
+
+When you find an index entry like:
+```
+- **Views & Layouts** `docs:issues/planning-and-tracking-with-projects/customizing-views/index.md`
+```
+
+You MUST fetch exactly: `issues/planning-and-tracking-with-projects/customizing-views/index.md`
+
+**NEVER guess or invent filenames** like `filtering-projects.md` - if it's not in the index, it doesn't exist as far as you know. The index IS the source of truth for what files are available.
+
 ### Step 4: Handle Index Gaps
 
 If the user's question cannot be answered because the index lacks relevant entries, **use AskUserQuestion** to clarify:
@@ -129,23 +140,44 @@ Examples:
 
 ## Source Access
 
+### Worked Example (IMPORTANT - Follow This Pattern!)
+
+**Index entry found:** `docs:issues/planning-and-tracking-with-projects/customizing-views/index.md`
+
+**Step 1 - Parse the path:**
+- `source_id` = `docs` (everything before the colon)
+- `relative_path` = `issues/planning-and-tracking-with-projects/customizing-views/index.md` (everything after the colon)
+
+**Step 2 - Look up source in config.yaml:**
+```yaml
+sources:
+  - id: docs
+    type: git
+    repo_owner: github
+    repo_name: docs
+    branch: main
+    docs_root: content
+```
+
+**Step 3 - Construct the full path:**
+- Local clone: `.source/docs/content/issues/planning-and-tracking-with-projects/customizing-views/index.md`
+- GitHub URL: `https://raw.githubusercontent.com/github/docs/main/content/issues/planning-and-tracking-with-projects/customizing-views/index.md`
+
+**CRITICAL:** The `relative_path` from the index is used EXACTLY as-is. NEVER invent or guess filenames!
+
 ### For git sources
-
-Look up the source in `data/config.yaml` to get `repo_owner`, `repo_name`, `branch`, and `docs_root`.
-
-**IMPORTANT: Always check for local clone first!**
 
 **Step 1 - Check for local clone:**
 Use Glob or Bash to check if `.source/{source_id}/` exists.
 
 **Step 2a - If local clone exists (PREFERRED):**
-Read directly from `.source/{source_id}/{docs_root}/{path}` using the Read tool.
+Read directly from `.source/{source_id}/{docs_root}/{relative_path}` using the Read tool.
 This is faster and works offline.
 
 **Step 2b - If NO local clone exists (fallback only):**
-Fetch from GitHub:
+Fetch from GitHub using the EXACT path from the index:
 ```
-https://raw.githubusercontent.com/{repo_owner}/{repo_name}/{branch}/{docs_root}/{path}
+https://raw.githubusercontent.com/{repo_owner}/{repo_name}/{branch}/{docs_root}/{relative_path}
 ```
 Use WebFetch to retrieve content.
 
