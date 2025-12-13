@@ -188,13 +188,15 @@ The collaborative index building. Rather than Claude guessing what matters, you 
 | Docs change frequently | Just need a code snippet |
 | Official docs are authoritative | Docs are stable and well-known |
 
-### Why separate repos for corpora?
+### Why corpora are independent
 
-**Indexes are personal.** The collaborative index you build reflects *your* priorities. Someone focused on ClickHouse analytics has different needs than someone building ETL pipelines.
+Regardless of where you put them (user-level, repo-local, or marketplace), corpora are designed to be self-contained:
 
-**Independent lifecycles.** Your corpus updates when *you* need it, not when someone else changes theirs.
+**Indexes are personal.** The collaborative index you build reflects *your* priorities. Someone focused on ClickHouse analytics has different needs than someone building ETL pipelines. A team's repo-local corpus reflects that team's focus.
 
-**Lightweight installation.** Users install only the corpus skills they actually use.
+**Independent lifecycles.** Your corpus updates when *you* need it. A user-level skill evolves with your learning; a repo-local skill evolves with the project; a marketplace plugin evolves with its maintainer.
+
+**Lightweight by design.** Each corpus contains only what it needs—no shared dependencies, no version conflicts. Install what you use.
 
 ## Example Structures
 
