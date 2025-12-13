@@ -6,43 +6,23 @@ allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep", "TodoWrite", "AskUserQu
 
 # Corpus Gateway
 
-Unified entry point for all hiivmind-corpus operations. Analyze the user's request and route to the appropriate skill(s), orchestrating multi-step workflows automatically.
+Unified entry point for all hiivmind-corpus operations.
 
 **User request:** $ARGUMENTS
 
 ---
 
-## Step 1: Context Detection
+## Step 1: Check for Arguments
 
-First, detect the current directory context:
+**If `$ARGUMENTS` is empty** → Go directly to **Mode: Interactive Menu** (no introspection needed first)
 
-```bash
-# Check if in a corpus directory
-test -f data/config.yaml && echo "IN_CORPUS=true"
-
-# Check if in a marketplace
-test -f .claude-plugin/marketplace.json && echo "IN_MARKETPLACE=true"
-
-# Check for corpus subdirectories
-ls -d hiivmind-corpus-*/ 2>/dev/null && echo "HAS_CORPUS_CHILDREN=true"
-
-# Check if established project (non-corpus)
-ls package.json pyproject.toml Cargo.toml go.mod setup.py requirements.txt 2>/dev/null && echo "IN_PROJECT=true"
-
-# Check user-level corpora
-ls ~/.claude/skills/hiivmind-corpus-*/ 2>/dev/null && echo "HAS_USER_CORPORA=true"
-
-# Check marketplace corpora
-ls ~/.claude/plugins/marketplaces/hiivmind-corpus-*/ ~/.claude/plugins/marketplaces/*/hiivmind-corpus-*/ 2>/dev/null && echo "HAS_MARKETPLACE_CORPORA=true"
-```
+**If `$ARGUMENTS` is provided** → Continue to Step 2: Intent Detection
 
 ---
 
-## Step 2: Intent Detection
+## Step 2: Intent Detection (only when arguments provided)
 
-If `$ARGUMENTS` is empty → Go to **Mode: Interactive Menu**
-
-If `$ARGUMENTS` is provided → Analyze intent using these patterns:
+Analyze intent using these patterns:
 
 ### Intent → Skill Mapping
 
@@ -70,6 +50,19 @@ Some requests imply multiple skills - use TodoWrite to track:
 | "create corpus with {source1} and {source2}" | init → add-source → build |
 | "set up {project} with blog posts too" | init → add-source (web) → build |
 
+---
+
+## Step 3: Context Detection (only when needed for routing)
+
+When arguments are provided and context matters for routing, detect:
+
+```bash
+# Only run these when needed to determine valid operations
+test -f data/config.yaml && echo "IN_CORPUS=true"
+test -f .claude-plugin/marketplace.json && echo "IN_MARKETPLACE=true"
+ls package.json pyproject.toml Cargo.toml go.mod 2>/dev/null && echo "IN_PROJECT=true"
+```
+
 ### Context + Intent Matrix
 
 | Context | init | add-source | build | enhance | refresh | upgrade | navigate |
@@ -82,7 +75,7 @@ Some requests imply multiple skills - use TodoWrite to track:
 
 ---
 
-## Step 3: Routing
+## Step 4: Routing
 
 Based on detected intent, route appropriately:
 
@@ -139,11 +132,42 @@ I'm not sure what you'd like to do. Which of these fits?
 
 ## Mode: Interactive Menu (No Arguments)
 
-When invoked without arguments, discover all installed corpora and present an interactive selection.
+When invoked without arguments, **ask what the user wants first** before doing any discovery or introspection.
 
-### Discover Corpora
+### Step 1: Ask Intent First
 
-Find all installed hiivmind-corpus plugins:
+Use AskUserQuestion immediately:
+
+```
+What would you like to do?
+
+1. **Navigate a corpus** - Ask questions about installed documentation
+2. **Create a new corpus** - Index documentation for a project
+3. **Manage existing corpus** - Refresh, enhance, or check status
+4. **List installed corpora** - See what's available
+```
+
+### Step 2: Route Based on Selection
+
+**If "Navigate a corpus"**:
+1. Now discover installed corpora (see Discovery Commands below)
+2. Present list of built corpora
+3. Ask which corpus to query
+4. Load `hiivmind-corpus-navigate` skill
+
+**If "Create a new corpus"**:
+1. Load `hiivmind-corpus-init` skill directly
+2. No discovery needed
+
+**If "Manage existing corpus"**:
+1. Now discover installed corpora
+2. Present list with status indicators
+3. Ask which corpus and what action (refresh, enhance, upgrade)
+
+**If "List installed corpora"**:
+1. Now discover and display all corpora with status
+
+### Discovery Commands (only run when needed)
 
 ```bash
 # User-level corpora
@@ -169,34 +193,16 @@ ls -d ~/.claude/plugins/marketplaces/*/hiivmind-corpus-*/.claude-plugin 2>/dev/n
 done
 ```
 
-### Check Status
+### Status Detection (only when listing or managing)
 
 For each corpus, determine status:
 - **placeholder**: index.md contains "Run hiivmind-corpus-build"
 - **built**: index.md has real entries
 - **stale**: local clone HEAD differs from indexed SHA
 
-### Present Interactive Selection
-
-Use AskUserQuestion:
-
-```
-What would you like to do with documentation corpora?
-
-**Available corpora:**
-- hiivmind-corpus-polars (✓ built)
-- hiivmind-corpus-ibis (✓ built)
-- hiivmind-corpus-github (⚠ stale)
-
-**Actions:**
-- Select a corpus to work with
-- Create a new corpus
-- Refresh all stale corpora
-```
-
 ### Corpus Action Menu
 
-After corpus selection, show context-aware actions:
+After corpus selection for management, show actions:
 
 **For built/stale corpora:**
 - Navigate - Ask questions about this documentation
