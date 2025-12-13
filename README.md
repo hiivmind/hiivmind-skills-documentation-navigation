@@ -55,6 +55,14 @@ The corpus skills you generate are:
 
 Or use `/plugin` to browse and install interactively.
 
+## Dependencies
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| **git** | any | Clone source repos, track commits |
+| **yq** | 4.0+ | Parse YAML config files |
+| **curl** | any | Fetch remote docs (fallback when no local clone) |
+
 ## The Eight Skills
 
 | Skill | Purpose |
