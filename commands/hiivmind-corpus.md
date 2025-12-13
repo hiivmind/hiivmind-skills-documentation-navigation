@@ -169,22 +169,28 @@ What would you like to do?
 
 ### Discovery Commands (only run when needed)
 
-Use simple for loops (avoid pipe issues):
+Use simple for loops with `basename` (avoid `${d##*/}` which fails with trailing slashes):
 
 ```bash
 # User-level corpora
 for d in ~/.claude/skills/hiivmind-corpus-*/; do
-  [ -d "$d" ] && echo "user-level|${d##*/}|$d"
+  [ -d "$d" ] || continue
+  name=$(basename "$d")
+  echo "user-level|$name|$d"
 done
 
 # Repo-local corpora
 for d in .claude-plugin/skills/hiivmind-corpus-*/; do
-  [ -d "$d" ] && echo "repo-local|${d##*/}|$d"
+  [ -d "$d" ] || continue
+  name=$(basename "$d")
+  echo "repo-local|$name|$d"
 done
 
-# Marketplace corpora (both single and multi)
-for d in ~/.claude/plugins/marketplaces/hiivmind-corpus-*/ ~/.claude/plugins/marketplaces/*/hiivmind-corpus-*/; do
-  [ -d "$d" ] && echo "marketplace|${d##*/}|$d"
+# Marketplace corpora (multi-corpus marketplaces)
+for d in ~/.claude/plugins/marketplaces/*/hiivmind-corpus-*/; do
+  [ -d "$d" ] || continue
+  name=$(basename "$d")
+  echo "marketplace|$name|$d"
 done
 ```
 
