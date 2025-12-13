@@ -169,27 +169,22 @@ What would you like to do?
 
 ### Discovery Commands (only run when needed)
 
+Use simple for loops (avoid pipe issues):
+
 ```bash
 # User-level corpora
-ls -d ~/.claude/skills/hiivmind-corpus-*/ 2>/dev/null | while read d; do
-  echo "user-level|$(basename "$d")|$d"
+for d in ~/.claude/skills/hiivmind-corpus-*/; do
+  [ -d "$d" ] && echo "user-level|${d##*/}|$d"
 done
 
 # Repo-local corpora
-ls -d .claude-plugin/skills/hiivmind-corpus-*/ 2>/dev/null | while read d; do
-  echo "repo-local|$(basename "$d")|$d"
+for d in .claude-plugin/skills/hiivmind-corpus-*/; do
+  [ -d "$d" ] && echo "repo-local|${d##*/}|$d"
 done
 
-# Marketplace single-corpus
-ls -d ~/.claude/plugins/marketplaces/hiivmind-corpus-*/.claude-plugin 2>/dev/null | while read d; do
-  dir=$(dirname "$d")
-  echo "marketplace|$(basename "$dir")|$dir"
-done
-
-# Marketplace multi-corpus children
-ls -d ~/.claude/plugins/marketplaces/*/hiivmind-corpus-*/.claude-plugin 2>/dev/null | while read d; do
-  dir=$(dirname "$d")
-  echo "marketplace|$(basename "$dir")|$dir"
+# Marketplace corpora (both single and multi)
+for d in ~/.claude/plugins/marketplaces/hiivmind-corpus-*/ ~/.claude/plugins/marketplaces/*/hiivmind-corpus-*/; do
+  [ -d "$d" ] && echo "marketplace|${d##*/}|$d"
 done
 ```
 
